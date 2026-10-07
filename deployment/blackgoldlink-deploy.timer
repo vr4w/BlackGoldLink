@@ -1,0 +1,9 @@
+[Unit]
+Description=Check approved BlackGoldLink releases every two minutes
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=2min
+RandomizedDelaySec=10
+Unit=blackgoldlink-deploy.service
+[Install]
+WantedBy=timers.target

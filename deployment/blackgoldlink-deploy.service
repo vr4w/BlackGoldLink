@@ -1,0 +1,10 @@
+[Unit]
+Description=Install explicitly approved BlackGoldLink GitHub release
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -B /usr/local/lib/blackgoldlink/github-updater.py
+TimeoutStartSec=5min
+TimeoutStopSec=2min
+UMask=0077

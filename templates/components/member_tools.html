@@ -1,0 +1,12 @@
+{% if user %}
+{% include 'components/friends_panel.html' %}
+<details class="music-panel" data-music data-user="{{ user.id }}" data-session="{{ music_prompt }}" data-ready="{{ 'true' if music_ready else 'false' }}" data-endpoint="{{ url_for('music_next') }}" data-csrf="{{ csrf }}">
+<summary>♫ <span>{{ t('Shelf radio') }}</span></summary>
+<div class="music-body">
+<div data-music-consent class="music-bubble"><strong>{{ t('Play a random song from your collection?') }}</strong><p class="fine">{{ t('YouTube receives your IP and browser information after OK. Starts at 10% volume.') }}</p><div class="radio-choice"><button type="button" class="button small" data-music-ok>OK</button><button type="button" class="button small outline" data-music-no>{{ t('Fuck off 😄') }}</button></div></div>
+<p data-music-title class="music-track" aria-live="polite"></p><div data-music-frame></div>
+<div data-music-controls hidden class="music-controls">
+<div class="music-buttons"><button type="button" data-music-toggle aria-label="{{ t('Play / pause') }}" title="{{ t('Play / pause') }}">▶</button><button type="button" data-music-next aria-label="{{ t('Next record') }}" title="{{ t('Next record') }}">↠</button><button type="button" data-music-stop aria-label="{{ t('Stop & disconnect') }}" title="{{ t('Stop & disconnect') }}">■</button></div>
+<label class="volume-control"><span aria-hidden="true">♫</span><input type="range" min="0" max="100" step="1" value="10" aria-label="{{ t('Volume') }}" title="{{ t('Volume') }} · {{ t('Mouse wheel') }}" data-volume><output data-volume-output>10%</output></label>
+</div><p data-music-status class="fine" role="status"></p></div></details>
+{% endif %}

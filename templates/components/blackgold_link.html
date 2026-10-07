@@ -1,0 +1,28 @@
+{% macro vinyl(prefix, side, score=0, label=None) %}
+<svg class="link-vinyl vinyl-{{ side }}" viewBox="0 0 260 260" aria-hidden="true">
+<defs>
+<linearGradient id="{{ prefix }}-{{ side }}-surface" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#131313"/><stop offset="1" stop-color="#0e0e0e"/></linearGradient>
+<linearGradient id="{{ prefix }}-{{ side }}-shine" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fff" stop-opacity="0"/><stop offset=".22" stop-color="#fff" stop-opacity="0"/><stop offset=".29" stop-color="#fff" stop-opacity=".055"/><stop offset=".36" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<mask id="{{ prefix }}-{{ side }}-scan"><circle cx="130" cy="130" r="121" fill="white"/><circle data-scan-inner cx="130" cy="130" r="{{ 121 - 77 * score / 100 }}" fill="black"/></mask>
+<mask id="{{ prefix }}-{{ side }}-grooves"><circle cx="130" cy="130" r="125" fill="white"/><circle cx="130" cy="130" r="43" fill="black"/></mask>
+<radialGradient id="{{ prefix }}-{{ side }}-lamp"><stop stop-color="#ffdf99" stop-opacity=".64"/><stop offset=".35" stop-color="#b99856" stop-opacity=".2"/><stop offset="1" stop-color="#a78952" stop-opacity="0"/></radialGradient>
+<clipPath id="{{ prefix }}-{{ side }}-edge"><ellipse cx="14" cy="124" rx="23" ry="66"/></clipPath>
+</defs>
+<circle cx="130" cy="130" r="126" fill="url(#{{ prefix }}-{{ side }}-surface)" stroke="#333"/>
+<circle class="scan-surface" cx="130" cy="130" r="121" fill="#535353" mask="url(#{{ prefix }}-{{ side }}-scan)"/>
+{% for r in range(44,123,2) %}<circle cx="130" cy="130" r="{{ r }}" fill="none" stroke="{{ '#000' if r%4 else '#aaa' }}" stroke-opacity="{{ '.18' if r%4 else '.06' }}" stroke-width=".5"/>{% endfor %}
+<circle cx="130" cy="130" r="125" fill="url(#{{ prefix }}-{{ side }}-shine)"/>
+<g class="scan-light" mask="url(#{{ prefix }}-{{ side }}-grooves)"><ellipse class="scan-lamp" cx="22" cy="124" rx="24" ry="66" fill="url(#{{ prefix }}-{{ side }}-lamp)"/><g clip-path="url(#{{ prefix }}-{{ side }}-edge)"><circle class="strobe-marks" cx="130" cy="130" r="123" fill="none" stroke="#ebd5a0" stroke-opacity=".65" stroke-width="2" stroke-dasharray="1 5"/></g></g>
+<circle class="record-label" cx="130" cy="130" r="33" fill="{{ '#e4dbc4' if side=='a' else '#8fa6af' }}"/><circle cx="130" cy="130" r="5" fill="#111"/>{% if label %}<text x="130" y="116" text-anchor="middle" fill="#333" font-size="6">{{ label[:17] }}</text>{% endif %}
+</svg>
+{% endmacro %}
+{% macro link_scene(name_a,name_b,score,prefix='compare',interactive=true,comments=[],presentation=false,personal=false) %}
+<section class="blackgold-link {{ 'link-personal' if personal else '' }} {{ 'link-interactive' if interactive else 'link-signature is-complete' }}" data-presentation="{{ 'true' if presentation else 'false' }}" data-blackgold-link data-target="{{ score }}" data-interactive="{{ 'true' if interactive else 'false' }}" data-comments="{{ comments|tojson|forceescape }}">
+<div class="link-names"><div><span><i class="label-key own"></i>{{ t('Your collection') if personal else t('Collection') }}</span><strong>{{ name_a }}</strong></div><div><span><i class="label-key peer"></i>{{ t('Their collection') if personal else t('Collection') }}</span><strong>{{ name_b }}</strong></div></div>
+<div class="link-stage">{{ vinyl(prefix,'a',score) }}{{ vinyl(prefix,'b',score) }}<div class="link-score"><strong><span data-link-number>{{ score }}</span><small>%</small></strong><span>BLACKGOLD LINK</span></div></div>
+{% if interactive %}<div class="link-controls"><button type="button" class="button link-start" data-link-start>START BLACKGOLD LINK</button><p data-link-comment class="link-comment" role="status" aria-live="polite">{{ t('Zwei Collections. Ein gemeinsamer Blick ins Regal.') }}</p></div><noscript><p class="fine">{{ t('JavaScript ist aus: Der berechnete Wert und alle Vergleichsdaten bleiben sichtbar.') }}</p></noscript>{% else %}<div class="signature-caption">{{ t('Zwei Collections → Gemeinsamkeiten & Wanted Hits') }}<br><small>{{ t('Fiktives Beispiel ·') }} <a href="{{ url_for('demo') }}">{{ t('BLACKGOLD LINK ausprobieren →') }}</a></small></div>{% endif %}
+</section>
+{% endmacro %}
+{% macro release_cover(release,demo=false) %}
+{% if demo %}<img class="release-cover" src="{{ url_for('static',filename=release.cover) }}" alt="{{ t('Fiktives Demo-Cover:') }} {{ release.title }}" loading="lazy" width="120" height="120">{% elif release.get('thumb_url') %}<img class="release-cover" src="{{ url_for('cover',release_id=release.id) }}" alt="Cover: {{ release.title }}" loading="lazy" width="120" height="120">{% else %}<img class="release-cover" src="{{ url_for('static',filename='cover-unavailable.svg') }}" alt="{{ t('Cover nicht verfügbar') }}" loading="lazy" width="120" height="120">{% endif %}
+{% endmacro %}

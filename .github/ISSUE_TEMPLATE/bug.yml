@@ -1,0 +1,27 @@
+name: Bug report
+description: Something in BlackGoldLink is not working
+body:
+  - type: markdown
+    attributes:
+      value: Please use fictional examples where possible. Never post login details, tokens, invitation links, private messages or another person's collection. Crop screenshots accordingly.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: What did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+  - type: input
+    id: version
+    attributes:
+      label: Version or approximate time

@@ -1,0 +1,22 @@
+[Unit]
+Description=Collection Relay read-only Discogs import worker
+After=network.target
+
+[Service]
+User=collection-relay
+Group=collection-relay
+WorkingDirectory=/srv/collection-relay/current
+EnvironmentFile=/etc/collection-relay.env
+ExecStart=/srv/collection-relay/venv/bin/python worker.py
+Restart=on-failure
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/collection-relay
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

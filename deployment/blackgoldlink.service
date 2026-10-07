@@ -1,0 +1,20 @@
+[Unit]
+Description=BlackGoldLink private test platform
+After=network.target
+[Service]
+User=blackgoldlink
+Group=blackgoldlink
+WorkingDirectory=/srv/blackgoldlink/current
+EnvironmentFile=/etc/blackgoldlink.env
+ExecStart=/srv/blackgoldlink/venv/bin/gunicorn --workers 1 --threads 2 --bind 127.0.0.1:5013 --timeout 180 'app:create_app()'
+Restart=on-failure
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/blackgoldlink
+MemoryMax=320M
+CPUQuota=50%
+[Install]
+WantedBy=multi-user.target

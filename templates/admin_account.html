@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block content %}
+{% set label={'signout':'End all sessions','suspend':'Suspend account','restore':'Restore account'}[action] %}
+<section class="card admin-confirm"><h1 class="medium">{{ t(label) }}</h1><h2>{{ target.display_name or target.username }}</h2><p class="fine">@{{ target.username }} · BGL-{{ target.id }}</p>
+<p>{{ t({'signout':'The user is signed out on all devices. They can sign in again through Discogs. Their data stays stored.','suspend':'The user is signed out and cannot sign in again until restored. Comparison sharing is turned off. Data stays stored.','restore':'The user can sign in again through Discogs. Sharing stays off until the user enables it again.'}[action]) }}</p>
+<form method="post"><input type="hidden" name="csrf" value="{{ csrf }}"><label class="check"><input type="checkbox" name="confirm" value="yes" required>{{ t('I confirm this action for this user.') }}</label><div class="admin-confirm-buttons"><button class="button">{{ t('Confirm') }}</button><a href="{{ url_for('admin_panel') }}">{{ t('Cancel') }}</a></div></form></section>
+{% endblock %}

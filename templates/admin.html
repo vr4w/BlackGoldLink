@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block content %}
+<div class="page-heading"><h1 class="medium">{{ t('Account administration') }}</h1><a href="{{ url_for('profile_settings') }}">{{ t('Edit profile') }} →</a></div>
+<form class="admin-search" method="get"><input type="search" name="q" maxlength="80" value="{{ query }}" aria-label="{{ t('Search by name, username or BGL ID') }}" placeholder="{{ t('Search by name, username or BGL ID') }}"><button class="button small">{{ t('Search') }}</button></form>
+<p class="fine" data-admin-status role="status"></p><div data-admin-live data-page="{{ page }}">{% include 'components/admin_content.html' %}</div>
+<script defer src="{{ url_for('static',filename='admin.js') }}"></script>
+{% endblock %}

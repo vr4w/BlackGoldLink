@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}<section class="card"><h1 class="medium">{{ t('Das ging gerade nicht.') }}</h1><p>{{ t(message) }}</p><a class="button" href="{{ url_for('landing') }}">{{ t('Zur Startseite') }}</a></section>{% endblock %}

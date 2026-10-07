@@ -1,0 +1,20 @@
+[Unit]
+Description=BlackGoldLink Discogs import worker
+After=network.target
+[Service]
+User=blackgoldlink
+Group=blackgoldlink
+WorkingDirectory=/srv/blackgoldlink/current
+EnvironmentFile=/etc/blackgoldlink.env
+ExecStart=/srv/blackgoldlink/venv/bin/python worker.py
+Restart=on-failure
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/blackgoldlink
+MemoryMax=320M
+CPUQuota=50%
+[Install]
+WantedBy=multi-user.target

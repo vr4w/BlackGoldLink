@@ -1,0 +1,1 @@
+{% for member in participants %}<article class="contact-result"><div><strong>{{ member.display_name or member.username }}</strong><small>@{{ member.handle or member.username }} · BGL-{{ member.id }}</small></div>{% include 'components/friend_action.html' %}</article>{% else %}<p class="fine">{{ t('No matching participants found.') }}</p>{% endfor %}

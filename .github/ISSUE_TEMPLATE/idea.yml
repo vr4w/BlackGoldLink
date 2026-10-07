@@ -1,0 +1,10 @@
+name: Idea or usability feedback
+description: Suggest a focused improvement
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you change, and why?
+      description: English or German is welcome. Please avoid personal account data.
+    validations:
+      required: true

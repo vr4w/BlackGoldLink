@@ -1,0 +1,1 @@
+{% extends 'base.html' %}{% block content %}<article class="legal"><h1 class="medium">{{ t('Imprint') }}</h1><p>{{ config.CONTROLLER_NAME or t('Noch nicht konfiguriert') }}<br>{{ config.CONTROLLER_ADDRESS or t('Adresse noch nicht konfiguriert') }}</p><p>{{ config.PRIVACY_CONTACT or t('Datenschutzkontakt noch nicht konfiguriert') }}</p></article>{% endblock %}

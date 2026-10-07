@@ -1,0 +1,8 @@
+{% extends 'base.html' %}{% from 'components/blackgold_link.html' import link_scene,release_cover with context %}{% block content %}
+<div class="presentation-landing" data-link-results>
+<section class="presentation-intro"><h1>{{ t('Compare your collection with others.') }}</h1></section>
+{{ link_scene('John Doe','Jane Doe',demo_score,prefix='landing',interactive=true,presentation=true,comments=[t('Different shelves. Shared discoveries.')]) }}
+<div class="presentation-actions"><a class="button" href="{{ url_for('invite') }}">{{ t('Mit Discogs anmelden ↗') }}</a></div>
+<section class="presentation-hits" data-link-reveal><div class="presentation-stat"><strong>{{ demo_common }}</strong><span>{{ t('shared releases') }}</span></div><div><div class="eyebrow">YOU HAVE · THEY WANT</div><div class="presentation-sleeves">{% for release in demo_hits %}<div>{{ release_cover(release,true) }}<span>{{ release.title }}</span></div>{% endfor %}</div></div><div><div class="eyebrow">THEY HAVE · YOU WANT</div><div class="presentation-sleeves">{% for release in demo_other_hits %}<div>{{ release_cover(release,true) }}<span>{{ release.title }}</span></div>{% endfor %}</div></div></section>
+<p class="presentation-note">{{ t('Fictional preview. Your own collection starts with Discogs sign-in.') }}</p>
+</div>{% endblock %}
