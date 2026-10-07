@@ -12,7 +12,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: bgl-${{ github.workflow }}-${{ github.ref }}
+  group: bgl-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}-${{ inputs.deploy || false }}
   cancel-in-progress: false
 jobs:
   check:
