@@ -10,7 +10,7 @@ The full template is `.env.example`. It is a trusted shell/systemd-compatible co
 - Strong `SECRET_KEY` and Fernet `TOKEN_ENCRYPTION_KEY`, generated once and preserved. Generate locally with Python `secrets.token_hex(32)` and `Fernet.generate_key()` respectively. Store only in the private server configuration.
 - Your Discogs application's `DISCOGS_CONSUMER_KEY` and `DISCOGS_CONSUMER_SECRET`. Register `BASE_URL/oauth/callback` as callback; no personal access token.
 - `PUBLIC_SIGNUP`, optional `INVITE_CODE`; the current private test platform also has an outer Nginx login.
-- `MATCHING_APPROVED=false` by default. Enable only for a deployment with appropriate Discogs permission. Each participant still separately opts into visibility.
+- `MATCHING_APPROVED=false` by default. Enable only for a deployment with appropriate Discogs permission. Participation and member visibility are explained and confirmed in the ordinary Discogs sign-in; there is no subsequent checkbox.
 - Real `CONTROLLER_NAME`, `CONTROLLER_ADDRESS`, `PRIVACY_CONTACT`, `HOSTING_PROVIDER`.
 - `ADMIN_DISCOGS_IDS`: comma-separated immutable numeric Discogs IDs. Empty disables the owner panel. Editable usernames/handles never grant privileges.
 
@@ -64,4 +64,4 @@ Stopping the timer prevents future checks; an already running update can still f
 
 Manual recovery: pause updates, verify the desired release, atomically point `current` to it and restart only the two BGL services. Preserve the current database and environment. Explicitly review schema compatibility before any historical rollback. After rolling back manually, publishing a newly approved commit is the preferred path; do not overwrite a published release asset.
 
-The owner panel is `/admin`, linked from the owner's profile. It can revoke sessions, suspend or restore users. BGL has no user passwords to reset: login belongs to Discogs. Suspension does not delete data; restored users must log in and enable comparison visibility again.
+The owner panel is `/admin`, linked from the owner's profile. It can revoke sessions, suspend or restore users. BGL has no user passwords to reset: login belongs to Discogs. Suspension does not delete data; restored users must complete the normal Discogs sign-in, which includes comparison participation.

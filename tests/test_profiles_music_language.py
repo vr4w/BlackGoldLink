@@ -20,7 +20,7 @@ class Features(unittest.TestCase):
         policy=self.client.get('/invite').headers['Content-Security-Policy']
         self.assertIn("form-action 'self' https://www.discogs.com",policy)
         self.assertNotIn('https://www.discogs.com',self.client.get('/').headers['Content-Security-Policy'])
-        response=self.client.post('/connect',data={'csrf':self.csrf(),'consent':'yes','adult':'yes','invite_code':'friends'})
+        response=self.client.post('/connect',data={'csrf':self.csrf(),'consent':'yes','adult':'yes','consent_scope':'collection-comparison-v1','invite_code':'friends'})
         self.assertEqual(response.status_code,302)
         self.assertIn('https://www.discogs.com/oauth/authorize?',response.location)
         self.assertIn("form-action 'self' https://www.discogs.com",response.headers['Content-Security-Policy'])

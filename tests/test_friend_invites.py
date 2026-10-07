@@ -16,7 +16,7 @@ class FriendInvites(unittest.TestCase):
     def token(self,uid=1):
         return URLSafeTimedSerializer(self.app.config['SECRET_KEY'],salt='bgl-friend-invitation-v1').dumps(uid)
 
-    def test_invite_to_oauth_import_optin_and_real_compare(self):
+    def test_invite_to_oauth_import_and_real_compare_without_extra_optin(self):
         self.app.config['MATCHING_APPROVED']=True
         self.login();run_once(self.app)
         token=self.token();path='/join/'+token
@@ -28,7 +28,7 @@ class FriendInvites(unittest.TestCase):
         self.assertIn(b'name="friend_token"',page.data)
         self.assertIn('https://www.discogs.com',page.headers['Content-Security-Policy'])
         with guest.session_transaction() as session:csrf=session['csrf']
-        response=guest.post('/connect',data={'csrf':csrf,'consent':'yes','adult':'yes','friend_token':token})
+        response=guest.post('/connect',data={'csrf':csrf,'consent':'yes','adult':'yes','consent_scope':'collection-comparison-v1','friend_token':token})
         self.assertEqual(response.status_code,302)
         with patch.object(test_flow.FakeDiscogs,'identity',return_value={'id':202,'username':'friend-user'}):
             self.assertEqual(guest.get('/oauth/callback?oauth_token=request-token&oauth_verifier=verified').location,path)
@@ -36,12 +36,10 @@ class FriendInvites(unittest.TestCase):
         with patch.object(test_flow.FakeDiscogs,'import_list',side_effect=lambda username,kind,progress:profiles()[1][kind]):
             run_once(self.app)
         page=guest.get(path).data
-        self.assertIn(b'Choose to share',page)
-        self.assertNotIn(b'test-user',page)
-        with guest.session_transaction() as session:csrf=session['csrf']
-        self.assertEqual(guest.post('/visibility',data={'csrf':csrf,'visible':'yes','friend_token':token}).location,path)
-        self.assertIn(b'friend still needs to enable sharing',guest.get(path).data)
-        self.client.post('/visibility',data={'csrf':self.csrf(),'visible':'yes'})
+        self.assertNotIn(b'Choose to share',page)
+        self.assertNotIn(b'name="visible"',page)
+        self.assertIn(b'test-user',page)
+        self.assertIn('friend-user',self.client.get('/api/friends?q=friend-user').json['html'])
         self.assertIn(b'START BLACKGOLD LINK',guest.get(path).data)
         result=guest.get('/compare/1')
         self.assertEqual(result.status_code,200)
@@ -55,9 +53,9 @@ class FriendInvites(unittest.TestCase):
         self.login();run_once(self.app)
         token=self.token();guest=self.app.test_client()
         guest.get('/join/'+token)
-        self.assertEqual(guest.post('/connect',data={'friend_token':token,'consent':'yes','adult':'yes'}).status_code,400)
+        self.assertEqual(guest.post('/connect',data={'friend_token':token,'consent':'yes','adult':'yes','consent_scope':'collection-comparison-v1'}).status_code,400)
         with guest.session_transaction() as session:csrf=session['csrf']
-        self.assertEqual(guest.post('/connect',data={'csrf':csrf,'friend_token':token+'x','consent':'yes','adult':'yes'}).status_code,403)
+        self.assertEqual(guest.post('/connect',data={'csrf':csrf,'friend_token':token+'x','consent':'yes','adult':'yes','consent_scope':'collection-comparison-v1'}).status_code,403)
         with patch('itsdangerous.timed.TimestampSigner.get_timestamp',return_value=int(time.time())-8*86400):expired=self.token()
         self.assertEqual(guest.get('/join/'+expired).status_code,404)
         self.assertEqual(guest.get('/join/'+self.token(999)).status_code,404)

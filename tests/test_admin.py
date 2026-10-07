@@ -61,7 +61,7 @@ class Administration(unittest.TestCase):
         with patch.object(test_flow.FakeDiscogs,'identity',return_value={'id':202,'username':'friend'}):
             self.peer.get('/')
             with self.peer.session_transaction() as session:csrf=session['csrf']
-            self.assertEqual(self.peer.post('/connect',data={'csrf':csrf,'consent':'yes','adult':'yes','invite_code':'friends'}).status_code,302)
+            self.assertEqual(self.peer.post('/connect',data={'csrf':csrf,'consent':'yes','adult':'yes','consent_scope':'collection-comparison-v1','invite_code':'friends'}).status_code,302)
             self.assertEqual(self.peer.get('/oauth/callback?oauth_token=request-token&oauth_verifier=verified').status_code,403)
         db=connection(self.app);self.assertEqual(db.execute('SELECT count(*) FROM sessions WHERE user_id=2').fetchone()[0],0)
         self.assertEqual(db.execute('SELECT visible FROM users WHERE id=2').fetchone()[0],0);db.close()
@@ -69,10 +69,10 @@ class Administration(unittest.TestCase):
         self.assertEqual(self.peer.get('/app').status_code,302) # Restoration does not resurrect revoked sessions.
         with patch.object(test_flow.FakeDiscogs,'identity',return_value={'id':202,'username':'friend'}):
             with self.peer.session_transaction() as session:csrf=session['csrf']
-            self.peer.post('/connect',data={'csrf':csrf,'consent':'yes','adult':'yes','invite_code':'friends'})
+            self.peer.post('/connect',data={'csrf':csrf,'consent':'yes','adult':'yes','consent_scope':'collection-comparison-v1','invite_code':'friends'})
             self.assertEqual(self.peer.get('/oauth/callback?oauth_token=request-token&oauth_verifier=verified').status_code,302)
         self.assertEqual(self.peer.get('/app').status_code,200)
-        db=connection(self.app);self.assertEqual(db.execute('SELECT visible FROM users WHERE id=2').fetchone()[0],0)
+        db=connection(self.app);self.assertEqual(db.execute('SELECT visible FROM users WHERE id=2').fetchone()[0],1)
         self.assertEqual([r[0] for r in db.execute('SELECT action FROM admin_actions ORDER BY id')],['suspend','restore']);db.close()
     def test_owner_protection_search_escape_audit_and_deletion_cascade(self):
         self.setup_admin()

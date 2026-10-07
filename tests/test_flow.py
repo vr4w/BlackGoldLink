@@ -38,7 +38,7 @@ class Flow(unittest.TestCase):
         self.client.get('/')
         with self.client.session_transaction() as session: return session['csrf']
     def login(self):
-        response=self.client.post('/connect',data={'csrf':self.csrf(),'consent':'yes','adult':'yes','invite_code':'friends'})
+        response=self.client.post('/connect',data={'csrf':self.csrf(),'consent':'yes','adult':'yes','consent_scope':'collection-comparison-v1','invite_code':'friends'})
         self.assertEqual(response.status_code,302)
         self.assertIn('discogs.com/oauth/authorize',response.location)
         self.assertEqual(self.client.get('/oauth/callback?oauth_token=request-token&oauth_verifier=verified').location,'/app')
@@ -64,7 +64,7 @@ class Flow(unittest.TestCase):
         self.assertIsNone(self.client.get('/export').json['snapshot'])
     def test_csrf_and_invite_enforced(self):
         self.assertEqual(self.client.post('/connect',data={}).status_code,400)
-        self.assertEqual(self.client.post('/connect',data={'csrf':self.csrf(),'consent':'yes','adult':'yes','invite_code':'wrong'}).status_code,403)
+        self.assertEqual(self.client.post('/connect',data={'csrf':self.csrf(),'consent':'yes','adult':'yes','consent_scope':'collection-comparison-v1','invite_code':'wrong'}).status_code,403)
     def test_callback_replay(self):
         self.login();self.assertEqual(self.client.get('/oauth/callback?oauth_token=request-token&oauth_verifier=verified').status_code,400)
     def test_cross_user_privacy_gate(self):

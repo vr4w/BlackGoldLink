@@ -49,7 +49,7 @@ Crossmatches are `Collection B ∩ Wantlist A` and the reverse. They indicate po
 
 ## Architecture
 
-Flask/Jinja with plain JavaScript, SQLite, one Gunicorn web service and one import worker. No SPA framework, external chat provider or mail service. SQLite is intended for a small initial group on a single server. Account data stays behind authentication and explicit visibility consent. Collection snapshots expire after six hours; the worker must run for expiry and queued imports.
+Flask/Jinja with plain JavaScript, SQLite, one Gunicorn web service and one import worker. No SPA framework, external chat provider or mail service. SQLite is intended for a small initial group on a single server. Account data stays behind authentication and comparison consent given during Discogs sign-in. Collection snapshots expire after six hours; the worker must run for expiry and queued imports.
 
 Application URLs use `BASE_URL`. Deployment paths, service templates and the updater's loopback port are infrastructure defaults; adjust those deliberately for a new server. A domain move also requires DNS/TLS and a new Discogs callback. Do not change encryption/session keys during a move.
 
@@ -70,3 +70,7 @@ Each push to `main` and each pull request runs automated tests, JavaScript/shell
 To approve a live update, run **Actions → Check and publish → Run workflow**, choose `main`, enable **deploy** and then approve the `production` environment. Only the tested commit is published. Once the updater is installed, the server checks for approved releases about every two minutes. It defers during imports, backs up the BGL database and rolls back code if health checks fail. Schema/dependency/import changes require a manual release. [Operations](DEPLOY.md).
 
 No reuse license has been selected yet. The repository is public for review and feedback; this is not an additional license grant for the source or brand assets.
+
+## Comparison consent at sign-in
+
+The two existing sign-in checks cover collection/wantlist import, discovery and comparison among signed-in members, plus the age confirmation. There is no separate sharing checkbox after sign-in. Successful OAuth sets the existing visibility field for new and returning accounts. Previously private accounts are preserved until they complete the updated normal sign-in once. Older browser forms and in-flight OAuth requests cannot silently expand private-import consent. A versioned marker in the encrypted pending handshake distinguishes the consent copy; no database schema is changed. Pausing comparisons remains available under account controls; signing in again resumes participation.

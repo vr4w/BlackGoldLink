@@ -27,7 +27,7 @@ for file,name in [('app.py','SCHEMA'),('social.py','SOCIAL_SCHEMA')]:
 PY_SCHEMA
 # Refuse an unknown intervening release before touching code, configuration or data.
 current_version=$(curl --fail --silent --header 'Host: blackgoldlink.almost-everything.de' http://127.0.0.1:5013/api/version | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')
-[[ "$current_version" == '79db0bf341e3c90cba641048' || "$current_version" == '02c5f760862c1eb9cefa0092' ]] || { echo 'Ein anderer Release ist aktiv. Keine Änderung; bitte Ausgabe an Codex geben.'; exit 1; }
+[[ "$current_version" == '79db0bf341e3c90cba641048' || "$current_version" == '02c5f760862c1eb9cefa0092' || "$current_version" == '108822d5105412137942a78d' ]] || { echo 'Ein anderer Release ist aktiv. Keine Änderung; bitte Ausgabe an Codex geben.'; exit 1; }
 python3 "$source_dir/deployment/configure-owner.py" --check "$owner_username"
 systemctl is-active --quiet blackgoldlink.service blackgoldlink-worker.service
 release="/srv/blackgoldlink/releases/$(date +%Y%m%d-%H%M%S)-admin"

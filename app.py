@@ -24,6 +24,7 @@ from covers import fetch_cover, trusted_image_url
 from i18n import translate as t
 
 TTL = 6 * 3600
+CONSENT_SCOPE = 'collection-comparison-v1'
 SCHEMA = '''
 PRAGMA journal_mode=WAL;
 CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY, discogs_id INTEGER UNIQUE NOT NULL, username TEXT NOT NULL, credentials TEXT NOT NULL, consent_at REAL NOT NULL, visible INTEGER NOT NULL DEFAULT 0);
@@ -151,7 +152,7 @@ def create_app(overrides=None):
         members=[]
         if g.user and g.user['visible'] and app.config['MATCHING_APPROVED']:
             members=list(g.db.execute('SELECT u.id,u.username,u.display_name,u.handle FROM users u JOIN snapshots s ON u.id=s.user_id WHERE u.id!=? AND u.visible=1 AND s.fetched_at>? ORDER BY u.username LIMIT 100',(g.user['id'],time.time()-TTL)))
-        return dict(is_admin=is_admin(app,g.user),release_version=app.extensions['release_version'],social_panel=social_panel,current_year=time.localtime().tm_year,t=t,language=g.language,members=members,title=app.config['WORKING_TITLE'], user=g.user, csrf=session['csrf'], matching_approved=app.config['MATCHING_APPROVED'],
+        return dict(consent_scope=CONSENT_SCOPE,is_admin=is_admin(app,g.user),release_version=app.extensions['release_version'],social_panel=social_panel,current_year=time.localtime().tm_year,t=t,language=g.language,members=members,title=app.config['WORKING_TITLE'], user=g.user, csrf=session['csrf'], matching_approved=app.config['MATCHING_APPROVED'],
                     configured=bool(app.extensions['cipher'] and app.config['DISCOGS_CONSUMER_KEY'] and app.config['DISCOGS_CONSUMER_SECRET']),
                     base_url=app.config['BASE_URL'], config=app.config,music_prompt=session.get('music_prompt',''),
                     music_ready=bool(g.user and g.db.execute('SELECT user_id FROM snapshots WHERE user_id=? AND fetched_at>?',(g.user['id'],time.time()-TTL)).fetchone()))
@@ -213,6 +214,10 @@ def create_app(overrides=None):
             abort(403,'Einladungslink abgelaufen oder ungültig.')
         if not app.config['PUBLIC_SIGNUP'] and not owner and not secrets.compare_digest(request.form.get('invite_code',''), app.config['INVITE_CODE']):
             abort(403,'Einladungscode erforderlich.')
+        # An old browser form described a private import, not collection comparison.
+        if request.form.get('consent_scope') != CONSENT_SCOPE:
+            flash(t('Sign-in has changed. Please confirm import and collection comparisons.'))
+            return redirect(url_for('friend_invite',token=friend_token) if owner else url_for('invite'))
         # All authentication starts share a persisted per-client throttle; IP stored only as keyed hash.
         ipkey = hashlib.sha256((app.config['SECRET_KEY'] + (request.remote_addr or '')).encode()).hexdigest()
         row = g.db.execute('SELECT * FROM attempts WHERE key=?',(ipkey,)).fetchone()
@@ -229,6 +234,7 @@ def create_app(overrides=None):
             data = client(app).request_token(app.config['BASE_URL'] + '/oauth/callback')
             if data.get('oauth_callback_confirmed') != 'true':
                 raise DiscogsError('Discogs hat die Rücksprungadresse nicht bestätigt.')
+            data['bgl_consent_scope']=CONSENT_SCOPE
             pending_id = secrets.token_urlsafe(32)
             g.db.execute('INSERT INTO pending VALUES(?,?,?)',(pending_id,encrypt(app,data),now))
             g.db.commit()
@@ -253,6 +259,10 @@ def create_app(overrides=None):
         token = decrypt(app,row['credentials'])
         if not secrets.compare_digest(token['oauth_token'],request.args.get('oauth_token','')) or not request.args.get('oauth_verifier'):
             abort(400,'Discogs-Verbindung abgebrochen oder ungültig.')
+        if token.get('bgl_consent_scope') != CONSENT_SCOPE:
+            flash(t('Sign-in has changed. Please confirm import and collection comparisons.'))
+            friend_token=session.get('friend_token')
+            return redirect(url_for('friend_invite',token=friend_token) if friend_owner(friend_token) else url_for('invite'))
         try:
             api = client(app,token)
             credentials = api.access_token(request.args['oauth_verifier'])
@@ -261,7 +271,7 @@ def create_app(overrides=None):
             existing=g.db.execute('SELECT id FROM users WHERE discogs_id=?',(int(identity['id']),)).fetchone()
             if existing and suspended(g.db,existing['id']):
                 abort(403,t('This account is suspended. Please contact the site administrator.'))
-            g.db.execute('INSERT INTO users(discogs_id,username,credentials,consent_at) VALUES(?,?,?,?) ON CONFLICT(discogs_id) DO UPDATE SET username=excluded.username, credentials=excluded.credentials, consent_at=excluded.consent_at',
+            g.db.execute('INSERT INTO users(discogs_id,username,credentials,consent_at,visible) VALUES(?,?,?,?,1) ON CONFLICT(discogs_id) DO UPDATE SET username=excluded.username, credentials=excluded.credentials, consent_at=excluded.consent_at, visible=1',
                          (int(identity['id']),identity['username'],encrypt(app,credentials),time.time()))
             uid = g.db.execute('SELECT id FROM users WHERE discogs_id=?',(identity['id'],)).fetchone()['id']
             sid = secrets.token_urlsafe(32)
