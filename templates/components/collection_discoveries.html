@@ -1,0 +1,19 @@
+{% from 'components/blackgold_link.html' import release_cover with context %}
+{% macro discovery_card(item) %}
+{% set release=item.release %}
+<article class="discovery-release" data-discovery-card>
+{% if not demo %}<a href="https://www.discogs.com/release/{{ release.id }}" target="_blank" rel="noopener noreferrer" class="discovery-tile">{% else %}<div class="discovery-tile">{% endif %}
+{{ release_cover(release,demo) }}
+<div><span class="album-artist">{% for artist in release.artists %}{{ artist.name }}{% if not loop.last %} · {% endif %}{% endfor %}</span><strong>{{ release.title }}</strong>
+<small class="discovery-reason">{% if item.shared_artists %}{{ t('Artist on your shelf:') }} {{ item.shared_artists|join(' · ') }}{% elif item.shared_styles %}{{ t('Shared styles:') }} {{ item.shared_styles|join(' · ') }}{% elif item.shared_genres %}{{ t('Shared genres:') }} {{ item.shared_genres|join(' · ') }}{% else %}{{ t('A different direction') }}{% endif %}</small>
+<small class="discovery-medium">{% if item.vinyl %}Vinyl{% else %}{{ release.formats|map(attribute='name')|join(' · ') or t('Unknown format') }}{% endif %}{% if not demo %} · Data provided by Discogs ↗{% endif %}</small></div>
+{% if not demo %}</a>{% else %}</div>{% endif %}
+</article>
+{% endmacro %}
+<section class="collection-discoveries" data-link-reveal>
+<div class="discovery-heading"><div><div class="eyebrow">{{ t('COLLECTION DISCOVERIES') }}</div><h2>{{ t('Not on your shelf yet') }}</h2></div><span class="tag">{{ discoveries|length }} {{ t('record to discover' if discoveries|length==1 else 'records to discover') }}</span></div>
+<p class="fine">{{ t('Records from') }} {{ name_b }}. {{ t('Vinyl first, then familiar artists, styles and genres. No wantlist needed.') }}</p>
+<div class="discovery-grid">{% for item in discoveries[:8] %}{{ discovery_card(item) }}{% else %}<p class="discovery-empty">{% if not result.a_size or not result.b_size %}{{ t('Sync both collections to discover records.') }}{% else %}{{ t('You already have every album we can identify on this shelf. Try another collector.') }}{% endif %}</p>{% endfor %}</div>
+{% if discoveries|length>8 %}<details class="more-discoveries"><summary>{{ t('More records missing from your shelf') }} ({{ discoveries|length-8 }})</summary><div class="discovery-grid">{% for item in discoveries[8:] %}{{ discovery_card(item) }}{% endfor %}</div></details>{% endif %}
+<p class="fine discovery-note">{{ t('Other pressings of albums you own are excluded when Discogs provides a shared master ID. Without one, releases stay separate. These are discoveries, not a checklist you need to complete.') }}</p>
+</section>

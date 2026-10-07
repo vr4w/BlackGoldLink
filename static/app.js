@@ -46,7 +46,7 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
   const comment = scene.querySelector('[data-link-comment]');
   const root = scene.closest('[data-link-results]') || scene;
   const groups = [...root.querySelectorAll('[data-link-reveal]')];
-  const cards = [...root.querySelectorAll('[data-wanted-card]')];
+  const cards = [...root.querySelectorAll('[data-discovery-card], [data-wanted-card]')];
   const pool = JSON.parse(scene.dataset.comments || '[]');
   let previousComment = '';
   const timers = [];

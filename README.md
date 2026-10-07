@@ -45,7 +45,9 @@ In a second terminal, activate the same virtual environment, load the same confi
 
 The main score is `100 × |A ∩ B| / sqrt(|A| × |B|)` over unique release IDs. It is symmetric and accounts for collection size. Duplicate copies count once; different pressings remain different releases. Artist and genre scores use the same formula on separate sets and are shown separately.
 
-Crossmatches are `Collection B ∩ Wantlist A` and the reverse. They indicate possible discoveries, not a promise that a record is available for trade. Optional platform-frequency weighting is prepared but not enabled in the active score. Zero exact-release overlap does not imply zero shared artists or genres.
+The core flow is collection discovery: the dashboard ranks other collectors by collection similarity, with separate artist and genre scores breaking ties. Opening a comparison shows albums on the other shelf that are missing from your own, independently of either wantlist. Known shared master IDs exclude alternative pressings of albums you already own and group multiple peer pressings into one discovery (prefer vinyl); unknown masters stay separate. Vinyl comes first, then shared artists, styles and genres. This is an explainable discovery order, not a claim that an album is required or that you will like it. Empty collections provide no basis for personal discoveries. This view does not change the existing release-based similarity score.
+
+Wantlist crossmatches (`Collection B ∩ Wantlist A` and the reverse) and potential trades remain in a collapsed extra section. They are conversation starters, not a promise that a record is available for trade. Optional platform-frequency weighting is prepared but not enabled in the active score. Zero exact-release overlap does not imply zero shared artists or genres.
 
 ## Architecture
 

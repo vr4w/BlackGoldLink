@@ -17,6 +17,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, abort, flash, g, jsonify, redirect, render_template, request, session, url_for, Response
 from discogs import Discogs, DiscogsError
 from matching import compare, dna
+from discovery import collection_discoveries
 from collection_view import visible_releases, record_spines
 from score_comments import comments_for_score
 from versioning import release_version
@@ -162,9 +163,9 @@ def create_app(overrides=None):
         from demo import profiles
         a,b=profiles()
         result=compare(a,b)
-        lookup={x['id']:x for x in a['collection']+b['collection']}
         return render_template('landing.html',preview=a['collection'][:5],demo_score=result['score'],demo_common=len(result['common']),
-            demo_hits=[lookup[i] for i in sorted(result['for_b'])[:3]],demo_other_hits=[lookup[i] for i in sorted(result['for_a'])[:3]])
+            demo_discoveries=[item['release'] for item in collection_discoveries(a['collection'],b['collection'])[:3]],
+            demo_other_discoveries=[item['release'] for item in collection_discoveries(b['collection'],a['collection'])[:3]])
 
     friend_signer = URLSafeTimedSerializer(app.config['SECRET_KEY'], salt='bgl-friend-invitation-v1')
 
@@ -305,9 +306,11 @@ def create_app(overrides=None):
         matches=[]
         if data and app.config['MATCHING_APPROVED'] and g.user['visible']:
             for row in g.db.execute('SELECT u.id,u.username,u.display_name,s.data FROM users u JOIN snapshots s ON u.id=s.user_id WHERE u.id!=? AND u.visible=1 AND s.fetched_at>?',(g.user['id'],time.time()-TTL)):
-                result=compare(data,json.loads(row['data']))
-                matches.append(dict(id=row['id'],username=row['display_name'] or row['username'],result=result))
-            matches.sort(key=lambda m:m['result']['score'],reverse=True)
+                peer_data=json.loads(row['data'])
+                result=compare(data,peer_data)
+                discoveries=collection_discoveries(data['collection'],peer_data['collection'])
+                matches.append(dict(id=row['id'],username=row['display_name'] or row['username'],result=result,discovery_count=len(discoveries)))
+            matches.sort(key=lambda m:(-m['result']['score'],-m['result']['artist_score'],-m['result']['genre_score'],m['username'].casefold()))
         medium=request.args.get('medium','vinyl')
         if medium not in ('vinyl','all','other','unknown'):medium='vinyl'
         lists={key:visible_releases(data[key],medium) if data else [] for key in ('collection','wantlist')}
@@ -378,7 +381,8 @@ def create_app(overrides=None):
         sections=[('Gemeinsame Releases','common'),('Nur in deiner Collection','only_a'),('Nur in der anderen Collection','only_b'),
                   ('Deine Wantlist · andere Collection','for_a'),('Andere Wantlist · deine Collection','for_b'),
                   ('Du hast · andere Person sucht','trade_a'),('Andere Person hat · du suchst','trade_b')]
-        return render_template('compare.html',a=a,b=b,name_a=name_a,name_b=name_b,result=result,lookup=lookup,artist_names=artist_names,sections=sections,demo=demo,chat_peer=chat_peer,discogs_a=discogs_a or name_a,discogs_b=discogs_b or name_b,comment_options=[t(comment) for comment in (['No identical releases. The rest is in the details.'] if not result['common'] else comments_for_score(result['score']))])
+        discoveries=collection_discoveries(a['collection'],b['collection'])
+        return render_template('compare.html',a=a,b=b,name_a=name_a,name_b=name_b,result=result,lookup=lookup,artist_names=artist_names,sections=sections,discoveries=discoveries,demo=demo,chat_peer=chat_peer,discogs_a=discogs_a or name_a,discogs_b=discogs_b or name_b,comment_options=[t(comment) for comment in (['No identical releases. The rest is in the details.'] if not result['common'] else comments_for_score(result['score']))])
 
     @app.get('/demo')
     def demo():
