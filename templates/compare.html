@@ -5,7 +5,7 @@
 <div class="eyebrow">COLLECTION COMPARISON</div><h1 class="medium">BLACKGOLD LINK</h1>
 {% if not demo and chat_peer %}{% include 'components/chat.html' %}{% endif %}
 <div class="comparison-root" data-link-results>
-{{ link_scene(name_a,name_b,result.score,comments=comment_options,personal=not demo) }}
+{{ link_scene(name_a,name_b,result.score,comments=comment_options,personal=not demo,autostart=autostart) }}
 {% if not result.common %}
 <section class="zero-link-summary" data-link-reveal>
 {% if not result.a_size or not result.b_size %}<h2>{{ t('Not enough records yet.') }}</h2><p>{{ t('One collection is empty. Sync your records before comparing.') }}</p>

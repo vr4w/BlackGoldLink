@@ -449,5 +449,15 @@
   "Bisher keine gemeinsamen Artists oder Genres. Diese Platten zeigen eine andere Perspektive statt einer nahen Übereinstimmung.": "No shared artists or genres yet. These records are a different perspective, rather than a close match.",
   "BlackGoldLink hilft dir, Sammler mit ähnlichen Discogs-Collections zu finden und Platten in deren Regalen zu entdecken, die dir noch fehlen. Wantlist-Treffer und mögliche Tauschtreffer sind ein optionaler Zusatz. Besitz bedeutet keine Tauschbereitschaft.": "BlackGoldLink helps you find collectors with similar Discogs collections and discover records on their shelves that are missing from yours. Wantlist matches and potential trades are an optional extra. Ownership does not imply willingness to trade.",
   "Zwei Collections → Gemeinsamkeiten & neue Platten": "Two collections → shared records & new discoveries",
-  "Entdeckung": "record to discover"
+  "Entdeckung": "record to discover",
+  "Automatischer Abgleich mit allen teilnehmenden Sammlern. Keine Freundschaft oder Einladung nötig.": "Automatically compared with all participating collectors. No friendship or invitation needed.",
+  "Collections verglichen": "collections compared",
+  "Deine ähnlichste Collection": "Your closest collection",
+  "BlackGold Link starten": "Start BlackGold Link",
+  "Collections werden im Hintergrund aktualisiert. Treffer erscheinen hier automatisch.": "Refreshing collections in the background. Matches appear here automatically.",
+  "Noch keine importierten Collections zum Vergleichen. Lade einen Sammler ein, um ein weiteres Regal dazuzuholen.": "No imported collections to compare yet. Invite a collector to bring another shelf in.",
+  "Noch keine identischen Releases. Öffne eine Collection, um andere Artists und Alben zu entdecken.": "No identical releases yet. Open a collection to explore different artists and albums.",
+  "Abgelaufene Collections werden für Vergleiche automatisch aktualisiert. Du kannst auch selbst eine Synchronisierung starten.": "Expired collections are refreshed automatically for comparisons. You can also start a sync yourself.",
+  "Für automatische Sammlungsvergleiche aktualisieren wir abgelaufene Imports teilnehmender Mitglieder im Hintergrund, sobald ein Mitglied Meine Collection besucht oder die dortige Trefferliste aktualisiert wird. Die bestehenden Discogs-Verbindungen und der gemeinsame Importdienst werden verwendet. Pausierte oder gesperrte Accounts werden nicht automatisch aktualisiert.": "For automatic collection comparisons, expired imports of participating members are refreshed in the background when a member visits My collection or its match list updates. This uses existing Discogs connections and the shared import worker. Paused or suspended accounts are not refreshed automatically.",
+  "Collection verglichen": "collection compared"
 }

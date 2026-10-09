@@ -1,0 +1,14 @@
+{% macro match_row(match) %}<a class="match card" href="{{ url_for('comparison',uid=match.id,start=1) }}"><strong>{{ match.username }}</strong><span>{{ match.result.common|length }} {{ t('gemeinsame Releases') }} · {{ match.discovery_count }} {{ t('record to discover' if match.discovery_count==1 else 'records to discover') }}</span><b>{{ match.result.score }} % →</b></a>{% endmacro %}
+<section class="section-heading"><div class="eyebrow">{{ t('ANDERE REGALE') }}</div><h2>{{ t('Similar collections') }}</h2><p class="fine">{{ t('Automatically compared with all participating collectors. No friendship or invitation needed.') }} {% if matches %}<span class="compared-count">{{ matches|length }} {{ t('collection compared' if matches|length==1 else 'collections compared') }}</span>{% endif %}</p></section>
+{% if not matching_approved %}<div class="notice">{{ t('Echte Nutzervergleiche sind bis zur Klärung der API-Bedingungen gesperrt.') }} <a href="{{ url_for('demo') }}">{{ t('So sieht der Vergleich aus →') }}</a></div>
+{% elif not user.visible %}<p class="notice">{{ t('Sign in with Discogs once more to join collection comparisons.') }} <a href="{{ url_for('invite') }}">{{ t('Mit Discogs anmelden') }} →</a></p>
+{% else %}
+{% if comparison_refreshing %}<p class="match-refreshing" role="status">{{ t('Refreshing collections in the background. Matches appear here automatically.') }}</p>{% endif %}
+{% set best=matches[0] if matches and matches[0].result.score>0 else none %}
+{% if best %}<a class="closest-collection card" href="{{ url_for('comparison',uid=best.id,start=1) }}"><div><span class="eyebrow">{{ t('Your closest collection') }}</span><strong>{{ best.username }}</strong><span class="fine">{{ best.result.common|length }} {{ t('gemeinsame Releases') }} · {{ best.discovery_count }} {{ t('record to discover' if best.discovery_count==1 else 'records to discover') }}</span></div><div class="closest-score"><b>{{ best.result.score }}<small>%</small></b><span>{{ t('Start BlackGold Link') }} →</span></div></a>{% endif %}
+{% set other_matches=matches[1:] if best else matches %}
+{% set visible_rows=5 if best else 6 %}
+{% for match in other_matches[:visible_rows] %}{{ match_row(match) }}{% endfor %}
+{% if other_matches|length>visible_rows %}<details class="more-collections"><summary>{{ t('See all similar collections') }} ({{ matches|length }})</summary>{% for match in other_matches[visible_rows:] %}{{ match_row(match) }}{% endfor %}</details>{% endif %}
+{% if not matches and not comparison_refreshing %}<p class="fine">{{ t('No imported collections to compare yet. Invite a collector to bring another shelf in.') }}</p>{% elif matches and not best %}<p class="fine">{{ t('No identical releases yet. Open a collection to explore different artists and albums.') }}</p>{% endif %}
+{% endif %}

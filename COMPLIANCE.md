@@ -14,6 +14,8 @@ Collection, Wantlist und Nutzername zählen als Restricted Data. Die Bedingungen
 
 API-Inhalte dürfen nicht mehr als sechs Stunden veraltet angezeigt werden; Speicherung ist auf die notwendige Diensterbringung begrenzt. Der MVP nutzt den Beginn des vollständigen Imports als konservativen Zeitstempel, verbirgt veraltete Daten und löscht abgelaufene Snapshots. Kein CDN-/Browsercache für Profildaten. Keine dauerhafte Historie von Collections.
 
+Beim Besuch der Collection-Seite werden abgelaufene Imports teilnehmender Mitglieder über den bestehenden, gedrosselten Importdienst automatisch erneuert. Der Abgleich wartet auf frische, vollständige Imports; alte API-Daten werden nicht länger gespeichert oder angezeigt. Pausierte und gesperrte Accounts bleiben ausgenommen. Fehlgeschlagene Verbindungen werden frühestens nach einer Stunde erneut automatisch versucht.
+
 Die App enthält den verlangten Unabhängigkeitshinweis im Footer und neben echten API-Daten „Data provided by Discogs“ mit Links zur jeweils betroffenen Collection bzw. zum Release. Diese Links tragen kein `nofollow`. Cover-Thumbnails werden aus autorisierten frischen Snapshots über den eigenen Server geladen. Nur freigegebene Discogs-Bildhosts, geprüfte Bildformate und maximal zehn Minuten begrenzter RAM-Cache; keine externe Bildverbindung des Browsers.
 
 ## Dokumentation und Rate Limits

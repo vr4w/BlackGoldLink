@@ -18,6 +18,7 @@ from flask import Flask, abort, flash, g, jsonify, redirect, render_template, re
 from discogs import Discogs, DiscogsError
 from matching import compare, dna
 from discovery import collection_discoveries
+from collection_matches import refresh_imports, ranked_collections, pending_imports
 from collection_view import visible_releases, record_spines
 from score_comments import comments_for_score
 from versioning import release_version
@@ -298,19 +299,30 @@ def create_app(overrides=None):
             return fn(*args,**kwargs)
         return wrapped
 
+    def collection_match_data():
+        matches=[]
+        refreshing=0
+        if app.config['MATCHING_APPROVED'] and g.user['visible']:
+            refresh_imports(g.db,TTL)
+            g.db.commit()
+            matches=ranked_collections(g.db,g.user['id'],snapshot(g.db,g.user['id']),TTL)
+            refreshing=pending_imports(g.db)
+        return dict(matches=matches,comparison_refreshing=refreshing)
+
+    @app.get('/api/collection-matches')
+    @login_required
+    def collection_matches():
+        if not app.config['MATCHING_APPROVED'] or not g.user['visible']:
+            abort(403)
+        values=collection_match_data()
+        return jsonify(html=render_template('components/collection_matches.html',**values),refreshing=values['comparison_refreshing'])
+
     @app.get('/app')
     @login_required
     def dashboard():
+        match_data=collection_match_data()
         data = snapshot(g.db,g.user['id'])
         job = g.db.execute('SELECT * FROM jobs WHERE user_id=? ORDER BY id DESC LIMIT 1',(g.user['id'],)).fetchone()
-        matches=[]
-        if data and app.config['MATCHING_APPROVED'] and g.user['visible']:
-            for row in g.db.execute('SELECT u.id,u.username,u.display_name,s.data FROM users u JOIN snapshots s ON u.id=s.user_id WHERE u.id!=? AND u.visible=1 AND s.fetched_at>?',(g.user['id'],time.time()-TTL)):
-                peer_data=json.loads(row['data'])
-                result=compare(data,peer_data)
-                discoveries=collection_discoveries(data['collection'],peer_data['collection'])
-                matches.append(dict(id=row['id'],username=row['display_name'] or row['username'],result=result,discovery_count=len(discoveries)))
-            matches.sort(key=lambda m:(-m['result']['score'],-m['result']['artist_score'],-m['result']['genre_score'],m['username'].casefold()))
         medium=request.args.get('medium','vinyl')
         if medium not in ('vinyl','all','other','unknown'):medium='vinyl'
         lists={key:visible_releases(data[key],medium) if data else [] for key in ('collection','wantlist')}
@@ -319,7 +331,7 @@ def create_app(overrides=None):
         want_page=max(1,request.args.get('want_page',1,type=int))
         collection_page=min(collection_page,max(1,(len(lists['collection'])+23)//24))
         want_page=min(want_page,max(1,(len(lists['wantlist'])+23)//24))
-        return render_template('dashboard.html',data=data,profile=dna(data['collection']) if data else None,job=job,matches=matches,
+        return render_template('dashboard.html',data=data,profile=dna(data['collection']) if data else None,job=job,**match_data,
             collection_page=collection_page,want_page=want_page,medium=medium,lists=lists,unknown_formats=unknown,spines=record_spines(data['collection']) if data else [],friend_link=app.config['BASE_URL']+url_for('friend_invite',token=friend_signer.dumps(g.user['id'])),
             pending_friend=session.get('friend_token') if friend_owner(session.get('friend_token')) else None)
 
@@ -382,7 +394,7 @@ def create_app(overrides=None):
                   ('Deine Wantlist · andere Collection','for_a'),('Andere Wantlist · deine Collection','for_b'),
                   ('Du hast · andere Person sucht','trade_a'),('Andere Person hat · du suchst','trade_b')]
         discoveries=collection_discoveries(a['collection'],b['collection'])
-        return render_template('compare.html',a=a,b=b,name_a=name_a,name_b=name_b,result=result,lookup=lookup,artist_names=artist_names,sections=sections,discoveries=discoveries,demo=demo,chat_peer=chat_peer,discogs_a=discogs_a or name_a,discogs_b=discogs_b or name_b,comment_options=[t(comment) for comment in (['No identical releases. The rest is in the details.'] if not result['common'] else comments_for_score(result['score']))])
+        return render_template('compare.html',a=a,b=b,name_a=name_a,name_b=name_b,result=result,lookup=lookup,artist_names=artist_names,sections=sections,discoveries=discoveries,demo=demo,chat_peer=chat_peer,autostart=not demo and request.args.get('start')=='1',discogs_a=discogs_a or name_a,discogs_b=discogs_b or name_b,comment_options=[t(comment) for comment in (['No identical releases. The rest is in the details.'] if not result['common'] else comments_for_score(result['score']))])
 
     @app.get('/demo')
     def demo():

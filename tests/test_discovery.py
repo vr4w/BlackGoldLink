@@ -97,7 +97,7 @@ class DiscoveryPages(unittest.TestCase):
         self.assertLess(page.index('<strong>CloseShelf</strong>'), page.index('<strong>DistantShelf</strong>'))
         self.assertLess(page.index('Similar collections'), page.index('class="collection-shelf"'))
         self.assertIn('2 shared releases · 1 record to discover', page)
-        self.assertIn('81.6 %', page)
+        self.assertIn('<b>81.6<small>%</small></b>', page)
 
     def test_landing_and_german_show_collection_discovery_as_core(self):
         page = self.client.get('/').get_data(as_text=True)

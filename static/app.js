@@ -1,4 +1,50 @@
 const isGerman = document.body.dataset.language === 'de';
+// Only the match area changes; shelf radio, forms and page position stay intact.
+(() => {
+  const area = document.querySelector('[data-collection-matches][data-endpoint]');
+  if (!area) return;
+  let busy = false, stopped = false, timer, previous = area.innerHTML;
+  const message = document.createElement('p');
+  message.className = 'match-update-status';
+  message.setAttribute('role', 'status');
+  area.after(message);
+  async function refresh() {
+    clearTimeout(timer);
+    if (busy || stopped || document.hidden) return;
+    busy = true;
+    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 10000);
+    let delay = 30000;
+    try {
+      const response = await fetch(area.dataset.endpoint, {cache: 'no-store', signal: controller.signal, headers: {Accept: 'application/json'}});
+      if (response.redirected || [401, 403].includes(response.status)) {
+        area.replaceChildren(); stopped = true;
+        message.textContent = isGerman ? 'Vergleiche sind pausiert oder deine Sitzung ist abgelaufen.' : 'Comparisons are paused or your session has expired.';
+        return;
+      }
+      if (!response.ok) throw Error();
+      const data = await response.json();
+      if (previous !== data.html) {
+        const moreOpen = area.querySelector('.more-collections')?.open;
+        // Only escaped server-rendered templates from this site's authenticated endpoint.
+        area.innerHTML = data.html;
+        const more = area.querySelector('.more-collections');
+        if (more && moreOpen) more.open = true;
+        previous = data.html;
+      }
+      message.textContent = '';
+      if (data.refreshing) delay = 5000;
+    } catch (_) {
+      message.textContent = isGerman ? 'Treffer konnten gerade nicht aktualisiert werden. Neuer Versuch folgt.' : 'Matches could not be updated. Retrying shortly.';
+    } finally {
+      clearTimeout(timeout); busy = false;
+      if (!stopped) timer = setTimeout(refresh, delay);
+    }
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) clearTimeout(timer); else refresh();
+  });
+  timer = setTimeout(refresh, 5000);
+})();
 const search = document.querySelector('#release-search');
 search?.addEventListener('input', () => {
   const query = search.value.trim().toLocaleLowerCase();
@@ -102,8 +148,8 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
     };
     frame = requestAnimationFrame(tick);
   });
-  // Presentation plays once on arrival, never loops. Real comparisons remain click-triggered.
-  if (scene.dataset.presentation === 'true') button.click();
+  // An explicit dashboard match click starts the comparison once on arrival.
+  if (scene.dataset.presentation === 'true' || scene.dataset.autostart === 'true') button.click();
   // If the preference changes mid-animation, complete immediately.
   reducedMotion.addEventListener('change', () => {
     if (reducedMotion.matches && button.disabled) {
