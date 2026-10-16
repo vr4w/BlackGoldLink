@@ -161,6 +161,8 @@ def create_app(overrides=None):
 
     @app.get('/')
     def landing():
+        if g.user:
+            return redirect(url_for('dashboard'))
         from demo import profiles
         a,b=profiles()
         result=compare(a,b)

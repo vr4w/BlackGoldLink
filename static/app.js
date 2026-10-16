@@ -90,6 +90,7 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
   const pool = JSON.parse(scene.dataset.comments || '[]');
   let previous='', frame=0, revealTimer;
   const finish = () => {
+    document.body.classList.remove('bgl-performing');
     render(target); scene.classList.remove('is-running','is-scanning'); scene.classList.add('is-complete');
     const choices=pool.filter(text=>text!==previous);
     previous=choices[Math.floor(Math.random()*choices.length)]||pool[0]||'Two collections. Plenty to explore.';
@@ -108,6 +109,8 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
     comment.textContent=isGerman?'Zwei Collections. Ein Nadelstich.':'Two collections. One needle drop.';
     render(0,null);
     if (reduced.matches) {finish();return;}
+    document.body.style.setProperty('--stage-header-height',document.querySelector('body>header').offsetHeight+'px');
+    document.body.classList.add('bgl-performing');
     const started=performance.now(), arrival=3000, scan=6200;
     const tick=now=>{
       const elapsed=now-started, progress=Math.max(0,Math.min(1,(elapsed-arrival)/scan));

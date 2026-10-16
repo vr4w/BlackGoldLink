@@ -85,3 +85,17 @@ class Deployment(unittest.TestCase):
         with patch.object(updater,'fetch') as fetch:
             with self.assertRaisesRegex(RuntimeError,'asset URL'):updater.release_archive(repo,release)
             fetch.assert_not_called()
+
+    def test_public_health_requires_explicit_root_marker(self):
+        import json
+        version='a'*24
+        with tempfile.TemporaryDirectory() as temp:
+            state=Path(temp)
+            for public in (False,True):
+                if public:(state/'public-access').write_text('owner authorised')
+                for code in ('200','401'):
+                    replies=[io.BytesIO(json.dumps({'version':version}).encode()),io.BytesIO(b'{"status":"ok"}')]
+                    with patch.object(updater,'STATE',state),patch.object(updater,'urlopen',side_effect=replies),patch.object(updater.subprocess,'check_output',return_value=code),patch.object(updater,'systemctl'):
+                        if code==('200' if public else '401'):updater.health('host','https://host',version)
+                        else:
+                            with self.assertRaisesRegex(RuntimeError,'public access'):updater.health('host','https://host',version)

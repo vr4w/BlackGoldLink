@@ -11,7 +11,7 @@
 <circle cx="130" cy="130" r="126" fill="url(#{{ prefix }}-{{ side }}-surface)" stroke="#333"/>
 <circle class="scan-surface" cx="130" cy="130" r="121" fill="#535353" mask="url(#{{ prefix }}-{{ side }}-scan)"/>
 <g class="vinyl-rotor">{% for r in range(44,123,2) %}<circle cx="130" cy="130" r="{{ r }}" fill="none" stroke="{{ '#000' if r%4 else '#aaa' }}" stroke-opacity="{{ '.18' if r%4 else '.06' }}" stroke-width=".5"/>{% endfor %}<path d="M40 85 A101 101 0 0 1 159 34 M204 173 A90 90 0 0 1 80 205" fill="none" stroke="#ccc" stroke-opacity=".08" stroke-width="2" stroke-dasharray="19 7 2 12"/></g>
-<circle cx="130" cy="130" r="125" fill="url(#{{ prefix }}-{{ side }}-shine)"/>
+<circle class="record-reflection" cx="130" cy="130" r="125" fill="url(#{{ prefix }}-{{ side }}-shine)"/>
 <g class="scan-light" mask="url(#{{ prefix }}-{{ side }}-grooves)"><ellipse class="scan-lamp" cx="22" cy="124" rx="24" ry="66" fill="url(#{{ prefix }}-{{ side }}-lamp)"/><g clip-path="url(#{{ prefix }}-{{ side }}-edge)"><circle class="strobe-marks" cx="130" cy="130" r="123" fill="none" stroke="#ebd5a0" stroke-opacity=".65" stroke-width="2" stroke-dasharray="1 5"/></g></g>
 <circle class="record-label" cx="130" cy="130" r="33" fill="{{ '#e4dbc4' if side=='a' else '#8fa6af' }}"/><circle cx="130" cy="130" r="5" fill="#111"/>{% if label %}<text x="130" y="116" text-anchor="middle" fill="#333" font-size="6">{{ label[:17] }}</text>{% endif %}
 </svg>
@@ -20,8 +20,8 @@
 <section class="blackgold-link link-cinema {{ 'link-personal' if personal else '' }} {{ 'link-interactive' if interactive else 'link-signature' }} is-complete" data-presentation="{{ 'true' if presentation else 'false' }}" data-blackgold-link data-autostart="{{ 'true' if autostart else 'false' }}" data-target="{{ score }}" data-interactive="{{ 'true' if interactive else 'false' }}" data-comments="{{ comments|tojson|forceescape }}" aria-label="{{ t('BlackGoldLink collection scan') }}">
 <div class="link-stage"><div class="cinema-halo" aria-hidden="true"></div><div class="cinema-logo"><img src="{{ url_for('static',filename='brand/blackgoldlink-logo.png') }}" width="611" height="80" alt="BlackGoldLink"></div>
 {{ vinyl(prefix,'a',score) }}{{ vinyl(prefix,'b',score) }}
-<div class="link-names"><div><span><i class="label-key own"></i>{{ t('Your collection') if personal else t('Collection') }}</span><strong>{{ name_a }}</strong></div><div><span><i class="label-key peer"></i>{{ t('Their collection') if personal else t('Collection') }}</span><strong>{{ name_b }}</strong></div></div>
-<div class="link-score"><strong><span data-link-number>{{ score }}</span><small>%</small></strong><span>{{ t('COLLECTION LINK') }}</span></div><div class="cinema-scan-line" aria-hidden="true"></div></div>
+<div class="link-names"><div><span><i class="label-key own"></i>{{ t('Your collection') if personal else t('Collection') }}</span><strong>{{ name_a }}</strong><svg class="name-leader" viewBox="0 0 120 42" aria-hidden="true"><path d="M118 2 L70 38 L2 38"/></svg></div><div><span><i class="label-key peer"></i>{{ t('Their collection') if personal else t('Collection') }}</span><strong>{{ name_b }}</strong><svg class="name-leader" viewBox="0 0 120 42" aria-hidden="true"><path d="M2 2 L50 38 L118 38"/></svg></div></div>
+<div class="link-score"><strong><span data-link-number>{{ score }}</span><small>%</small></strong><span>{{ t('COLLECTION LINK') }}</span></div></div>
 <div class="link-controls">{% if interactive %}<button type="button" class="button link-start" data-link-start>START BLACKGOLD LINK</button>{% endif %}<p data-link-comment class="link-comment" role="status" aria-live="polite">{{ t('Two collections. Drop the needle.') }}</p></div><noscript><p class="fine">{{ t('JavaScript ist aus: Der berechnete Wert und alle Vergleichsdaten bleiben sichtbar.') }}</p></noscript>
 </section>
 {% endmacro %}

@@ -6,6 +6,7 @@ import test_flow
 class Presentation(unittest.TestCase):
     setUp=test_flow.Flow.setUp
     tearDown=test_flow.Flow.tearDown
+    csrf=test_flow.Flow.csrf
     def test_radial_bands_at_reference_percentages(self):
         # No-JS output must represent real score, not an empty graphic with a final number.
         with self.app.test_request_context('/'):
@@ -31,3 +32,15 @@ class Presentation(unittest.TestCase):
         with self.client.get('/static/brand/blackgoldlink-logo.png') as logo:
             self.assertEqual(logo.status_code,200)
             self.assertEqual(logo.mimetype,'image/png')
+
+    def test_signed_in_home_returns_to_collection(self):
+        test_flow.Flow.login(self)
+        self.assertEqual(self.client.get('/').location,'/app')
+
+    def test_start_page_has_no_legacy_scene_overrides_or_sweeping_bar(self):
+        from pathlib import Path
+        root=Path(__file__).resolve().parents[1]
+        css=(root/'static/style.css').read_text()
+        self.assertNotRegex(css,r'\.presentation-landing \.(?:blackgold-link|link-stage|link-vinyl|link-score)')
+        self.assertNotIn(b'cinema-scan-line',self.client.get('/').data)
+        self.assertIn(b'name-leader',self.client.get('/').data)

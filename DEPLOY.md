@@ -65,3 +65,9 @@ Stopping the timer prevents future checks; an already running update can still f
 Manual recovery: pause updates, verify the desired release, atomically point `current` to it and restart only the two BGL services. Preserve the current database and environment. Explicitly review schema compatibility before any historical rollback. After rolling back manually, publishing a newly approved commit is the preferred path; do not overwrite a published release asset.
 
 The owner panel is `/admin`, linked from the owner's profile. It can revoke sessions, suspend or restore users. BGL has no user passwords to reset: login belongs to Discogs. Suspension does not delete data; restored users must complete the normal Discogs sign-in, which includes comparison participation.
+
+## Public landing page (explicit owner activation)
+
+`deployment/activate-public-entry.py ARCHIVE COMMIT SHA256` is run once by the owner with sudo. It validates the archive, uses the installed updater to test and activate a compatible application release, backs up only the BGL Nginx configuration and updater, then removes the BGL Basic Auth directives. TLS and the noindex policy stay enabled. It verifies public `/` returns 200 and anonymous `/app`, `/admin`, `/api/friends` redirect to personal sign-in. Failure restores the previous Nginx gate and installed updater. Application/database rollback remains the installed updater's responsibility; no stale database is restored.
+
+The root-owned `/var/lib/blackgoldlink-deploy/public-access` marker records this decision. The installed updater subsequently expects public HTTP 200 instead of the old 401 gate; release tests, schema checks, import guards and GitHub approval remain unchanged. Personal sessions and admin authorization remain required.

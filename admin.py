@@ -40,6 +40,8 @@ def register_admin(app):
         @functools.wraps(fn)
         def wrapped(*args,**kwargs):
             # A hidden link is convenience, not authorisation.
+            if not g.user and request.method=='GET' and request.accept_mimetypes.best!='application/json':
+                return redirect(url_for('invite'))
             if not is_admin(app,g.user):abort(404)
             return fn(*args,**kwargs)
         return wrapped

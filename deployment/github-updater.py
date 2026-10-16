@@ -133,9 +133,10 @@ def health(host,base_url,version):
         except Exception:pass
         time.sleep(1)
     else:raise RuntimeError('New web version did not become healthy')
-    # curl validates TLS. Only 401 confirms the existing private test gate.
+    # The root-owned marker records the explicit owner decision to open the landing page.
     result=subprocess.check_output(['curl','--silent','--show-error','--max-time','20','--output','/dev/null','--write-out','%{http_code}',base_url+'/'],text=True)
-    if result!='401':raise RuntimeError('Shared access gate not confirmed')
+    expected='200' if (STATE/'public-access').is_file() else '401'
+    if result!=expected:raise RuntimeError('Unexpected public access status')
     systemctl('is-active','blackgoldlink.service','blackgoldlink-worker.service')
 
 

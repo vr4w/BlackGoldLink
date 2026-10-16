@@ -22,7 +22,8 @@ class Administration(unittest.TestCase):
         return self.post(self.client,f'/admin/users/{uid}/{action}',confirm=confirm)
     def test_hidden_panel_is_server_authorised_by_immutable_identity(self):
         self.setup_admin()
-        self.assertEqual(self.app.test_client().get('/admin').status_code,404)
+        self.assertEqual(self.app.test_client().get('/admin').status_code,302)
+        self.assertEqual(self.app.test_client().get('/admin',headers={'Accept':'application/json'}).status_code,404)
         self.assertEqual(self.peer.get('/admin').status_code,404)
         self.assertEqual(self.peer.post('/admin/users/1/suspend',data={'csrf':'wrong','confirm':'yes'}).status_code,400)
         self.assertEqual(self.post(self.peer,'/admin/users/1/suspend',confirm='yes').status_code,404)
