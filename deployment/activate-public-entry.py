@@ -10,6 +10,19 @@ import sys
 import time
 
 
+def wait_for_routes(url,timeout=30):
+    # systemctl reload only sends SIGHUP; new Nginx workers become ready asynchronously.
+    # Every probe opens a fresh TLS-verified connection. Only a transitional 401 is retried.
+    for route,expected in [('/',200),('/app',302),('/admin',302),('/api/friends',302)]:
+        deadline=time.monotonic()+timeout
+        while True:
+            code=subprocess.check_output(['curl','--silent','--show-error','--max-time','5','--output','/dev/null','--write-out','%{http_code}',url+route],text=True)
+            if code==str(expected):break
+            if code!='401' or time.monotonic()>=deadline:
+                raise RuntimeError('Zugangsprüfung fehlgeschlagen: '+route+' '+code)
+            time.sleep(.5)
+
+
 def main():
     if os.geteuid()!=0:raise SystemExit('Bitte mit sudo ausführen.')
     archive,commit,checksum=sys.argv[1:]
@@ -45,9 +58,7 @@ def main():
             config.write_text(updated)
             subprocess.run(['nginx','-t'],check=True)
             subprocess.run(['systemctl','reload','nginx'],check=True)
-            for route,expected in [('/',200),('/app',302),('/admin',302),('/api/friends',302)]:
-                code=subprocess.check_output(['curl','--silent','--show-error','--max-time','20','--output','/dev/null','--write-out','%{http_code}',url+route],text=True)
-                if code!=str(expected):raise RuntimeError('Zugangsprüfung fehlgeschlagen: '+route+' '+code)
+            wait_for_routes(url)
             shutil.copyfile(release/'deployment/github-updater.py',installed);installed.chmod(0o644)
             marker.write_text('Public landing page authorised by owner.\n');marker.chmod(0o600)
         except BaseException:
