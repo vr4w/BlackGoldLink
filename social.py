@@ -134,7 +134,13 @@ def register_social(app,login_required):
     @login_required
     def chat_widget(uid):
         peer=chat_peer(app,uid)
-        response=jsonify(html=render_template('components/chat.html',chat_peer=peer,name_b=peer['display_name'] or peer['username']))
+        from matching import compare
+        from score_comments import conversation_for_score, online_for_score
+        from i18n import translate as t
+        own,other=snapshot(g.db,g.user['id']),snapshot(g.db,uid)
+        score=compare(own,other)['score'] if own and other else None
+        response=jsonify(html=render_template('components/chat.html',chat_peer=peer,name_b=peer['display_name'] or peer['username'],
+            chat_nudges=[t(x) for x in conversation_for_score(score)],online_nudges=[t(x) for x in online_for_score(score)]))
         response.headers['Cache-Control']='no-store'
         return response
 

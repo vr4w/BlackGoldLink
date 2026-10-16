@@ -20,7 +20,7 @@ from matching import compare, dna
 from discovery import collection_discoveries
 from collection_matches import refresh_imports, ranked_collections, pending_imports
 from collection_view import visible_releases, record_spines
-from score_comments import comments_for_score
+from score_comments import comments_for_score, conversation_for_score, online_for_score
 from versioning import release_version
 from covers import fetch_cover, trusted_image_url
 from i18n import translate as t
@@ -164,7 +164,7 @@ def create_app(overrides=None):
         from demo import profiles
         a,b=profiles()
         result=compare(a,b)
-        return render_template('landing.html',preview=a['collection'][:5],demo_score=result['score'],demo_common=len(result['common']),
+        return render_template('landing.html',preview=a['collection'][:5],demo_score=result['score'],demo_common=len(result['album_common']),
             demo_discoveries=[item['release'] for item in collection_discoveries(a['collection'],b['collection'])[:3]],
             demo_other_discoveries=[item['release'] for item in collection_discoveries(b['collection'],a['collection'])[:3]])
 
@@ -390,11 +390,11 @@ def create_app(overrides=None):
         result=compare(a,b)
         lookup={x['id']:x for x in a['collection']+a['wantlist']+b['collection']+b['wantlist']}
         artist_names={str(v['id']):v['name'] for x in lookup.values() for v in x['artists']}
-        sections=[('Gemeinsame Releases','common'),('Nur in deiner Collection','only_a'),('Nur in der anderen Collection','only_b'),
+        sections=[('Identical release versions','common'),('Versions only in your collection','only_a'),('Versions only in their collection','only_b'),
                   ('Deine Wantlist · andere Collection','for_a'),('Andere Wantlist · deine Collection','for_b'),
                   ('Du hast · andere Person sucht','trade_a'),('Andere Person hat · du suchst','trade_b')]
         discoveries=collection_discoveries(a['collection'],b['collection'])
-        return render_template('compare.html',a=a,b=b,name_a=name_a,name_b=name_b,result=result,lookup=lookup,artist_names=artist_names,sections=sections,discoveries=discoveries,demo=demo,chat_peer=chat_peer,autostart=not demo and request.args.get('start')=='1',discogs_a=discogs_a or name_a,discogs_b=discogs_b or name_b,comment_options=[t(comment) for comment in (['No identical releases. The rest is in the details.'] if not result['common'] else comments_for_score(result['score']))])
+        return render_template('compare.html',a=a,b=b,name_a=name_a,name_b=name_b,result=result,lookup=lookup,artist_names=artist_names,sections=sections,discoveries=discoveries,demo=demo,chat_peer=chat_peer,autostart=True,chat_nudges=[t(x) for x in conversation_for_score(result['score'])],online_nudges=[t(x) for x in online_for_score(result['score'])],discogs_a=discogs_a or name_a,discogs_b=discogs_b or name_b,comment_options=[t(comment) for comment in comments_for_score(result['score'])])
 
     @app.get('/demo')
     def demo():

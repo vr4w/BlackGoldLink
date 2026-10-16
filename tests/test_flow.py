@@ -79,7 +79,8 @@ class Flow(unittest.TestCase):
         db.execute('INSERT INTO snapshots VALUES(2,?,?)',(json.dumps(profiles()[1]),time.time()));db.commit();db.close()
         self.app.config['MATCHING_APPROVED']=True
         self.assertEqual(self.client.get('/compare/2').status_code,200)
-        self.assertIn(b'70.7',self.client.get('/app').data)
+        self.assertIn(b'70.7',self.client.get('/compare/2').data)
+        self.assertIn(b'peer',self.client.get('/app').data)
         db=connection(self.app);db.execute('UPDATE users SET visible=0 WHERE id=2');db.commit();db.close()
         self.assertEqual(self.client.get('/compare/2').status_code,404)
     def test_pages_and_security_headers(self):

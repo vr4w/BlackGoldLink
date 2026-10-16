@@ -73,91 +73,68 @@ if (status) {
   setTimeout(poll, 3000);
 }
 
-// One renderer for fictional demos and consented real comparisons.
+// Logo -> incoming records -> radial scan -> a real result, then the conversation.
 for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
   const target = Math.max(0, Math.min(100, Number(scene.dataset.target) || 0));
   const number = scene.querySelector('[data-link-number]');
-  const scanMasks = [...scene.querySelectorAll('[data-scan-inner]')];
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-  const render = value => {
-    number.textContent = value.toFixed(1);
-    for (const mask of scanMasks) {
-      // Radial groove depth: 10% is a narrow outer band, 100% reaches the label.
-      mask.setAttribute('r', (121 - 77 * value / 100).toFixed(3));
-    }
+  const masks = [...scene.querySelectorAll('[data-scan-inner]')];
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const render = (depth, value=depth) => {
+    number.textContent = value === null ? '—' : value.toFixed(1);
+    for (const mask of masks) mask.setAttribute('r', (121-77*depth/100).toFixed(3));
   };
   if (scene.dataset.interactive !== 'true') { render(target); continue; }
-  const button = scene.querySelector('[data-link-start]');
-  const comment = scene.querySelector('[data-link-comment]');
+  const button = scene.querySelector('[data-link-start]'), comment = scene.querySelector('[data-link-comment]');
   const root = scene.closest('[data-link-results]') || scene;
   const groups = [...root.querySelectorAll('[data-link-reveal]')];
-  const cards = [...root.querySelectorAll('[data-discovery-card], [data-wanted-card]')];
   const pool = JSON.parse(scene.dataset.comments || '[]');
-  let previousComment = '';
-  const timers = [];
-  let frame = 0;
-  for (const group of groups) group.hidden = true;
-  number.textContent = '—';
-  render(0);
-  number.textContent = '—';
-  const later = (action, delay) => {
-    if (reducedMotion.matches) action();
-    else timers.push(setTimeout(action, delay));
-  };
+  let previous='', frame=0, revealTimer;
   const finish = () => {
-    render(target);
-    scene.classList.remove('is-running');
-    scene.classList.add('is-complete');
-    const choices = pool.filter(text => text !== previousComment);
-    previousComment = choices.length ? choices[Math.floor(Math.random() * choices.length)] : (pool[0] || 'Two collections. Plenty to explore.');
-    comment.textContent = previousComment;
-    groups.forEach((group, index) => later(() => {
-      group.hidden = false;
-      group.classList.add('revealing');
-    }, 200 + index * 220));
-    cards.forEach((card, index) => later(() => {
-      card.hidden = false;
-      card.classList.add('revealing');
-    }, 480 + index * 75));
-    later(() => {
-      button.disabled = false;
-      button.textContent = isGerman ? 'BLACKGOLD LINK NOCHMAL' : 'BLACKGOLD LINK AGAIN';
-      scene.setAttribute('aria-busy', 'false');
-    }, 900);
+    render(target); scene.classList.remove('is-running','is-scanning'); scene.classList.add('is-complete');
+    const choices=pool.filter(text=>text!==previous);
+    previous=choices[Math.floor(Math.random()*choices.length)]||pool[0]||'Two collections. Plenty to explore.';
+    comment.textContent=previous;
+    for (const group of groups) {group.hidden=false; group.classList.add('revealing');}
+    button.disabled=false; button.textContent=isGerman?'↻ NOCH EINMAL':'↻ PLAY IT AGAIN';
+    scene.setAttribute('aria-busy','false');
+    revealTimer=setTimeout(()=>document.dispatchEvent(new CustomEvent('bgl:complete',{detail:{score:target}})),reduced.matches?0:200);
   };
-  button.addEventListener('click', () => {
-    timers.splice(0).forEach(clearTimeout);
-    cancelAnimationFrame(frame);
-    groups.forEach(group => { group.hidden = true; group.classList.remove('revealing'); });
-    cards.forEach(card => { card.hidden = true; card.classList.remove('revealing'); });
-    scene.classList.remove('is-complete');
-    scene.classList.add('is-running');
-    scene.setAttribute('aria-busy', 'true');
-    button.disabled = true;
-    comment.textContent = isGerman ? 'Wir vergleichen die Regale …' : 'Comparing the shelves…';
-    render(0);
-    if (reducedMotion.matches) { finish(); return; }
-    const start = performance.now();
-    const tick = now => {
-      const progress = Math.min(1, (now - start) / 4000);
-      const eased = progress * progress * (3 - 2 * progress);
-      render(target * eased);
-      if (progress < 1) frame = requestAnimationFrame(tick);
-      else finish();
+  button.addEventListener('click',()=>{
+    clearTimeout(revealTimer); cancelAnimationFrame(frame);
+    groups.forEach(group=>{group.hidden=true;group.classList.remove('revealing');});
+    // Restart only the scene's CSS choreography, keeping the live conversation intact.
+    scene.classList.remove('is-complete','is-running','is-scanning'); void scene.offsetWidth;
+    scene.classList.add('is-running');scene.setAttribute('aria-busy','true');button.disabled=true;
+    comment.textContent=isGerman?'Zwei Collections. Ein Nadelstich.':'Two collections. One needle drop.';
+    render(0,null);
+    if (reduced.matches) {finish();return;}
+    const started=performance.now(), arrival=3000, scan=6200;
+    const tick=now=>{
+      const elapsed=now-started, progress=Math.max(0,Math.min(1,(elapsed-arrival)/scan));
+      if (elapsed>=arrival) scene.classList.add('is-scanning');
+      const eased=progress*progress*(3-2*progress);
+      // A zero-result scan searches, then drains back to zero. Never show a fictitious score.
+      if (target===0) render(18*Math.sin(Math.PI*progress),progress>.88?0:null);
+      else render(target*eased,elapsed<arrival?null:target*eased);
+      if (elapsed<arrival+scan+900) frame=requestAnimationFrame(tick); else finish();
     };
-    frame = requestAnimationFrame(tick);
+    frame=requestAnimationFrame(tick);
   });
-  // An explicit dashboard match click starts the comparison once on arrival.
-  if (scene.dataset.presentation === 'true' || scene.dataset.autostart === 'true') button.click();
-  // If the preference changes mid-animation, complete immediately.
-  reducedMotion.addEventListener('change', () => {
-    if (reducedMotion.matches && button.disabled) {
-      cancelAnimationFrame(frame);
-      timers.splice(0).forEach(clearTimeout);
-      finish();
-    }
-  });
+  scene.classList.remove('is-complete');groups.forEach(group=>{group.hidden=true;});render(0,null);
+  reduced.addEventListener('change',()=>{if(reduced.matches&&button.disabled){cancelAnimationFrame(frame);finish();}});
+  if(scene.dataset.presentation==='true'||scene.dataset.autostart==='true')button.click();
+}
+
+// A soft warm light stays above the record spines while the collection moves beneath it.
+for (const shelf of document.querySelectorAll('.record-shelf')) {
+  const housing=shelf.closest('.shelf-bleed');if(!housing)continue;
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let current=50,target=50,frame=0;
+  const tick=()=>{current+=(target-current)*.075;housing.style.setProperty('--shelf-light',current.toFixed(2)+'%');if(Math.abs(target-current)>.05)frame=requestAnimationFrame(tick);else frame=0;};
+  const move=value=>{target=value;if(reduced.matches){current=target;housing.style.setProperty('--shelf-light',target+'%');}else if(!frame)frame=requestAnimationFrame(tick);};
+  shelf.addEventListener('pointermove',event=>{const bounds=shelf.getBoundingClientRect();move(Math.max(8,Math.min(92,(event.clientX-bounds.left)/bounds.width*100)));},{passive:true});
+  shelf.addEventListener('pointerleave',()=>move(50));
+  shelf.addEventListener('scroll',()=>move(50+Math.sin(shelf.scrollLeft/650)*22),{passive:true});
 }
 
 for (const image of document.querySelectorAll('img.release-cover')) {

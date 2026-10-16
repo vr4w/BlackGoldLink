@@ -1,5 +1,6 @@
 """Directional collection gaps, independent of wantlists and the similarity score."""
 from collection_view import is_vinyl
+from matching import album_groups, album_key, known_masters
 
 
 def collection_discoveries(own_collection, other_collection):
@@ -11,14 +12,14 @@ def collection_discoveries(own_collection, other_collection):
     """
     if not own_collection or not other_collection:
         return []
-    own_ids = {release['id'] for release in own_collection}
-    own_masters = {release['master_id'] for release in own_collection if release.get('master_id')}
+    own_groups, _ = album_groups(own_collection, other_collection)
+    masters = known_masters(own_collection,other_collection)
     artists = {str(artist['id']) for release in own_collection for artist in release.get('artists', [])}
     styles = {style for release in own_collection for style in release.get('styles', [])}
     genres = {genre for release in own_collection for genre in release.get('genres', [])}
     candidates = []
     for release in other_collection:
-        if release['id'] in own_ids or (release.get('master_id') and release['master_id'] in own_masters):
+        if album_key(release, masters) in own_groups:
             continue
         candidates.append(dict(release=release, vinyl=is_vinyl(release),
             shared_artists=[artist['name'] for artist in release.get('artists', []) if str(artist['id']) in artists],
@@ -30,7 +31,7 @@ def collection_discoveries(own_collection, other_collection):
     result, seen = [], set()
     for item in candidates:
         release = item['release']
-        key = ('master', release['master_id']) if release.get('master_id') else ('release', release['id'])
+        key = album_key(release, masters)
         if key not in seen:
             seen.add(key)
             result.append(item)

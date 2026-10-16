@@ -92,13 +92,17 @@
   function setupChat(chat){
     const details=chat.closest('details'),log=chat.querySelector('[data-messages]'),form=chat.querySelector('[data-chat-form]');
     const input=form.querySelector('textarea'),button=form.querySelector('button'),status=chat.querySelector('[data-chat-status]'),older=chat.querySelector('[data-chat-older]');
-    if(window.matchMedia('(max-width:600px)').matches)details.open=false;
+    if(!chat.closest('.inline-chat')&&window.matchMedia('(max-width:600px)').matches)details.open=false;
+    const onlineCopy=JSON.parse(chat.closest('[data-chat-shell]').dataset.onlineNudges||'[]');
+    const onlineLine=onlineCopy[Math.floor(Math.random()*onlineCopy.length)]||text('Online now. Say hello.','Jetzt online. Sag hallo.');
     let after=0,first=0,busy=false,initial=true,sending=false,allowed=true,nonce='',draft='';const seen=new Set();
     function disable(){
       allowed=false;input.disabled=true;button.disabled=true;log.replaceChildren();seen.clear();after=0;first=0;initial=true;
       chat.querySelector('[data-online]').classList.remove('online');chat.querySelector('[data-presence]').textContent=text('Unavailable','Nicht verfügbar');
       status.textContent=text('Chat unavailable. Check sharing and friendship.','Chat nicht verfügbar. Freigabe und Freundschaft prüfen.');
     }
+    const empty=chat.querySelector('[data-chat-empty]');
+    chat.querySelector('[data-chat-focus]')?.addEventListener('click',()=>input.focus());
     const state={node:chat,details,disable,poll};chatState=state;
     const append=(messages,prepend=false)=>{
       const nearBottom=log.scrollHeight-log.scrollTop-log.clientHeight<45,oldHeight=log.scrollHeight,fragment=document.createDocumentFragment();
@@ -108,6 +112,7 @@
         const time=document.createElement('time'),date=new Date(message.created*1000);time.dateTime=date.toISOString();time.textContent=date.toLocaleString(de?'de-DE':'en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
         bubble.append(time);fragment.append(bubble);
       }
+      if(empty)empty.hidden=seen.size>0;
       if(prepend){log.prepend(fragment);log.scrollTop+=log.scrollHeight-oldHeight;}else{log.append(fragment);if(initial||nearBottom)log.scrollTop=log.scrollHeight;}
     };
     async function poll(before=0){
@@ -117,7 +122,7 @@
         if(chatState!==state)return;allowed=true;input.disabled=false;button.disabled=sending;
         append(data.messages,Boolean(before));if(initial||before)older.hidden=!data.older;
         chat.querySelector('[data-online]').classList.toggle('online',data.online);
-        chat.querySelector('[data-presence]').textContent=data.typing?text('typing…','tippt gerade …'):data.online?'Online':'Offline';
+        chat.querySelector('[data-presence]').textContent=data.typing?text('typing…','tippt gerade …'):data.online?onlineLine:text('Offline · leave a message for their next visit.','Offline · hinterlasse eine Nachricht für den nächsten Besuch.');
         if(!sending)status.textContent='';initial=false;
       }catch(error){if([403,404,401,302].includes(error.status))disable();else status.textContent=text('Connection interrupted. Retrying…','Verbindung unterbrochen. Neuer Versuch läuft …');}
       finally{busy=false;}
@@ -140,6 +145,14 @@
     });
     details.addEventListener('toggle',()=>{if(details.open){heartbeat();poll();}else heartbeat(false);});poll();
   }
+  document.addEventListener('bgl:complete',()=>{
+    const shell=document.querySelector('[data-chat-shell]');if(!shell)return;
+    const pool=JSON.parse(shell.dataset.chatNudges||'[]'),nudge=shell.querySelector('[data-chat-nudge]');
+    if(nudge&&pool.length)nudge.textContent=pool[Math.floor(Math.random()*pool.length)];
+    shell.classList.remove('chat-arrived');void shell.offsetWidth;shell.classList.add('chat-arrived');
+    const details=shell.querySelector('details');if(details)details.open=true;
+    heartbeat();chatState?.poll();
+  });
   const initialChat=document.querySelector('[data-chat]');if(initialChat)setupChat(initialChat);
   const catchUp=()=>{if(visible()){refreshFriends();heartbeat(Boolean(typingAt&&Date.now()-typingAt<4000));chatState?.poll();}};
   // A visible second browser window receives updates even when the other window has focus.

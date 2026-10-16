@@ -80,14 +80,14 @@ class DiscoveryPages(unittest.TestCase):
         self.assertLess(page.index('class="collection-discoveries"'), page.index('class="comparison-bonus"'))
         self.assertIn('<details class="comparison-bonus"', page)
         self.assertNotIn('<details class="comparison-bonus" open', page)
-        self.assertIn('Artist on your shelf: Artist 1', page)
+        self.assertIn('Artist in your collection: Artist 1', page)
 
     def test_zero_release_overlap_does_not_hide_discoveries(self):
         self.setup_collections([record(1)], [(2, 'OtherShelf', [record(2)])])
         page = self.client.get('/compare/2').get_data(as_text=True)
         self.assertIn('1 record to discover', page)
         self.assertLess(page.index('class="collection-discoveries"'), page.index('class="zero-link-details"'))
-        self.assertIn('No identical releases.', page)
+        self.assertIn('0%. Different planets.', page)
 
     def test_dashboard_ranks_collection_similarity_before_gap_or_want_counts(self):
         self.setup_collections([record(1), record(2)], [
@@ -95,18 +95,18 @@ class DiscoveryPages(unittest.TestCase):
             (3, 'CloseShelf', [record(1), record(2), record(6)])])
         page = self.client.get('/app').get_data(as_text=True)
         self.assertLess(page.index('<strong>CloseShelf</strong>'), page.index('<strong>DistantShelf</strong>'))
-        self.assertLess(page.index('Similar collections'), page.index('class="collection-shelf"'))
-        self.assertIn('2 shared releases · 1 record to discover', page)
-        self.assertIn('<b>81.6<small>%</small></b>', page)
+        self.assertLess(page.index('Black Gold Links'), page.index('class="collection-shelf"'))
+        self.assertNotIn('shared releases', page)
+        self.assertIn('Closest collection', page)
 
     def test_landing_and_german_show_collection_discovery_as_core(self):
         page = self.client.get('/').get_data(as_text=True)
-        self.assertIn('New to your shelf', page)
+        self.assertIn('New to your collection', page)
         self.assertNotIn('YOU HAVE · THEY WANT', page)
         response = self.client.post('/language', data={'csrf': self.csrf(), 'language': 'de', 'next': '/'})
         self.assertEqual(response.status_code, 302)
         page = self.client.get('/demo').get_data(as_text=True)
-        self.assertIn('Noch nicht in deinem Regal', page)
+        self.assertIn('Fehlt in deiner Collection', page)
         self.assertIn('Keine Wantlist nötig.', page)
         self.assertIn('Extra: Wantlist-Treffer &amp; mögliche Tauschtreffer', page)
 

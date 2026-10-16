@@ -25,13 +25,14 @@ class AutomaticCollections(unittest.TestCase):
         self.assertEqual(db.execute('SELECT count(*) FROM friendships').fetchone()[0], 0)
         db.close()
         page = self.client.get('/app').get_data(as_text=True)
-        self.assertIn('8 collections compared', page)
+        self.assertIn('Black Gold Links', page)
+        self.assertNotIn('shared releases', page)
         for uid in range(2, 10):
             self.assertIn(f'href="/compare/{uid}?start=1"', page)
-        self.assertIn('Your closest collection', page)
+        self.assertIn('Closest collection', page)
         self.assertIn('data-endpoint="/api/collection-matches"', page)
         self.assertIn('data-autostart="true"', self.client.get('/compare/2?start=1').get_data(as_text=True))
-        self.assertIn('data-autostart="false"', self.client.get('/compare/2').get_data(as_text=True))
+        self.assertIn('data-autostart="true"', self.client.get('/compare/2').get_data(as_text=True))
 
     def test_expired_peer_refreshes_without_peer_login_and_appears_in_live_fragment(self):
         record = test_discovery.record
@@ -42,7 +43,7 @@ class AutomaticCollections(unittest.TestCase):
         initial = self.client.get('/api/collection-matches').json
         self.assertNotIn('<strong>RefreshingShelf</strong>', initial['html'])
         self.assertEqual(initial['refreshing'], 1)
-        self.assertIn('Matches appear here automatically', initial['html'])
+        self.assertIn('Updating collections', initial['html'])
 
         class RefreshDiscogs(test_flow.FakeDiscogs):
             def import_list(self, username, kind, progress):
@@ -55,7 +56,8 @@ class AutomaticCollections(unittest.TestCase):
         self.assertEqual(response.headers['Cache-Control'], 'no-store')
         self.assertEqual(response.json['refreshing'], 0)
         self.assertIn('<strong>RefreshingShelf</strong>', response.json['html'])
-        self.assertIn('<b>70.7<small>%</small></b>', response.json['html'])
+        self.assertIn('Closest collection', response.json['html'])
+        self.assertIn('data-target="70.7"',self.client.get('/compare/2').get_data(as_text=True))
         db = connection(self.app)
         self.assertEqual(db.execute('SELECT count(*) FROM sessions WHERE user_id=2').fetchone()[0], 0)
         db.close()
@@ -116,6 +118,7 @@ class AutomaticCollections(unittest.TestCase):
     def test_zero_percent_is_not_presented_as_a_high_match(self):
         self.setup_collections([test_discovery.record(1)], [(2, 'DistantShelf', [test_discovery.record(2)])])
         page = self.client.get('/app').get_data(as_text=True)
-        self.assertIn('0.0 %', page)
+        self.assertNotIn('0.0 %', page)
+        self.assertIn('DistantShelf',page)
         self.assertNotIn('Your closest collection', page)
-        self.assertIn('No identical releases yet', page)
+        self.assertIn('Start BlackGold Link', page)

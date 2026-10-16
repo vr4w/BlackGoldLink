@@ -14,7 +14,7 @@ class LinkAlgorithms(unittest.TestCase):
     def test_component_policy(self):
         a,b=profiles();r=compare(a,b)
         self.assertEqual(r['score'],70.7)
-        self.assertEqual(r['score_factors'],{'releases':1})
+        self.assertEqual(r['score_factors'],{'albums':1})
         self.assertIsNone(r['component_scores']['masters'])
         self.assertEqual(combine_components({'releases':50,'artists':100},{'releases':3,'artists':1}),62.5)
         with self.assertRaises(ValueError):combine_components({'masters':None},{'masters':1})
@@ -22,7 +22,7 @@ class LinkAlgorithms(unittest.TestCase):
     def test_pressings_and_duplicates(self):
         item={'title':'Fiction','artists':[{'id':7,'name':'Artist'}],'genres':['Jazz'],'master_id':42,'styles':['Fusion'],'labels':[{'id':9,'name':'Label'}]}
         a={'collection':[dict(item,id=1),dict(item,id=1)],'wantlist':[]};b={'collection':[dict(item,id=2)],'wantlist':[]}
-        r=compare(a,b);self.assertEqual(r['score'],0);self.assertEqual(r['a_size'],1)
+        r=compare(a,b);self.assertEqual(r['score'],100);self.assertEqual(r['a_size'],1)
         self.assertEqual(r['component_scores']['masters'],100);self.assertEqual(r['component_scores']['labels'],100)
     def test_empty_identical_and_directions(self):
         empty={'collection':[],'wantlist':[]};a,b=profiles()

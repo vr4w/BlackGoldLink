@@ -155,7 +155,8 @@ class Social(unittest.TestCase):
         page=self.client.get('/compare/2').data
         self.assertIn(b'Your collection',page);self.assertIn(b'Their collection',page)
         self.assertNotIn(b'COLLECTION A',page);self.assertNotIn(b'SIDE A',page);self.assertNotIn(b'>BLACKGOLD</text>',page)
-        self.assertIn(b'No identical releases',page);self.assertIn(b'1 shared artists',page);self.assertIn(b'100.0%',page)
+        self.assertIn(b'0%. Different planets.',page);self.assertIn(b'100.0 %',page)
+        self.assertIn(b'comparison-conversation',page)
         self.assertIn(b'<details class="zero-link-details" data-link-reveal>',page)
         self.assertIn(b'Show details anyway',page);self.assertIn(b'Own pressing',page)
         self.assertNotIn(b'compare-a-surface"><stop offset="0"',page)
