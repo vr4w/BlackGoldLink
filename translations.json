@@ -555,5 +555,6 @@
   "Jetzt online. Sag hallo, bevor die nächste Seite läuft.": "Online now. Say hello before the next side starts.",
   "Jetzt online. Ein guter Zeitpunkt für eine Plattenempfehlung.": "Online now. A good time to recommend a record.",
   "Der Collection-Wert vergleicht unterschiedliche Alben anhand von Discogs-Master-IDs. Fehlt eine Master-ID, wird die genaue Release-ID verwendet. Unterschiedliche Pressungen eines identifizierten Albums zählen einmal. Die gemeinsamen Alben werden durch das geometrische Mittel beider Albumzahlen geteilt. Der Wert beschreibt Sammlungsähnlichkeit und trifft keine rechtlich erheblichen Entscheidungen über eine Person.": "The collection score compares distinct albums using Discogs master IDs, falling back to exact release IDs when a master is unavailable. Different pressings of the same identified album count once. The common albums are divided by the geometric mean of both album counts. The score describes collection similarity; it does not make legally significant decisions about a person.",
-  "Teile diesen Link. Dein Freund meldet sich mit Discogs an und kann eure Collections vergleichen.": "Share this link. Your friend signs in with Discogs to compare collections with you."
+  "Teile diesen Link. Dein Freund meldet sich mit Discogs an und kann eure Collections vergleichen.": "Share this link. Your friend signs in with Discogs to compare collections with you.",
+  "Der andere Sammler": "The other collector"
 }

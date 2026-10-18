@@ -19,8 +19,8 @@ class Presentation(unittest.TestCase):
             self.app.do_teardown_request(None)
     def test_landing_presents_visual_before_explanations(self):
         page=self.client.get('/').data
-        self.assertIn(b'John Doe',page)
-        self.assertIn(b'Jane Doe',page)
+        self.assertIn(b'Your collection',page)
+        self.assertIn(b'The other collector',page)
         self.assertIn(b'data-presentation="true"',page)
         self.assertNotIn(b'presentation-about',page)
         self.assertNotIn(b'Explore the demo',page)

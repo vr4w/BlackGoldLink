@@ -1,0 +1,10 @@
+{
+  "package": "three",
+  "version": "0.186.1",
+  "license": "MIT",
+  "source": "https://registry.npmjs.org/three/-/three-0.186.1.tgz",
+  "sha256": {
+    "three.module.js": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+    "three.core.js": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6"
+  }
+}

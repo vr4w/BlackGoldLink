@@ -153,7 +153,8 @@ class Social(unittest.TestCase):
             db.execute('UPDATE snapshots SET data=? WHERE user_id=?',(json.dumps({'collection':[item],'wantlist':[]}),uid))
         db.commit();db.close()
         page=self.client.get('/compare/2').data
-        self.assertIn(b'Your collection',page);self.assertIn(b'Their collection',page)
+        self.assertIn(b'data-name-a="test-user"',page);self.assertIn(b'data-name-b="friend"',page)
+        self.assertNotIn(b'Their collection</span>',page)
         self.assertNotIn(b'COLLECTION A',page);self.assertNotIn(b'SIDE A',page);self.assertNotIn(b'>BLACKGOLD</text>',page)
         self.assertIn(b'0%. Different planets.',page);self.assertIn(b'100.0 %',page)
         self.assertIn(b'comparison-conversation',page)

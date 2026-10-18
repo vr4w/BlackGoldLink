@@ -73,58 +73,80 @@ if (status) {
   setTimeout(poll, 3000);
 }
 
-// Logo -> incoming records -> radial scan -> a real result, then the conversation.
+// The existing DOM owns names, score, copy and chat. 3D only paints the records.
 for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
-  const target = Math.max(0, Math.min(100, Number(scene.dataset.target) || 0));
-  const number = scene.querySelector('[data-link-number]');
-  const masks = [...scene.querySelectorAll('[data-scan-inner]')];
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const render = (depth, value=depth) => {
-    number.textContent = value === null ? '—' : value.toFixed(1);
-    for (const mask of masks) mask.setAttribute('r', (121-77*depth/100).toFixed(3));
+  const target=Math.max(0,Math.min(100,Number(scene.dataset.target)||0));
+  const number=scene.querySelector('[data-link-number]');
+  const masks=[...scene.querySelectorAll('[data-scan-inner]')];
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  let vinyl=null,elapsedMs=0,depth=target,running=false,complete=true;
+  const publish=()=>{
+    try {vinyl?.update({elapsedMs,depth,running,complete,reduced:reduced.matches});}
+    catch(error){vinyl?.dispose();vinyl=null;}
   };
-  if (scene.dataset.interactive !== 'true') { render(target); continue; }
-  const button = scene.querySelector('[data-link-start]'), comment = scene.querySelector('[data-link-comment]');
-  const root = scene.closest('[data-link-results]') || scene;
-  const groups = [...root.querySelectorAll('[data-link-reveal]')];
-  const pool = JSON.parse(scene.dataset.comments || '[]');
-  let previous='', frame=0, revealTimer;
-  const finish = () => {
+  const render=(nextDepth,value=nextDepth)=>{
+    depth=nextDepth;number.textContent=value===null?'—':value.toFixed(1);
+    for(const mask of masks)mask.setAttribute('r',(121-77*depth/100).toFixed(3));
+    publish();
+  };
+  if(new URLSearchParams(location.search).get('graphics')!=='2d') {
+    import('./vinyl3d.js').then(({createVinylScene})=>{
+      vinyl=createVinylScene(scene,{onFailure:()=>{vinyl=null;}});publish();
+    }).catch(()=>{scene.querySelector('[data-vinyl-3d]')?.replaceChildren();});
+  }
+  window.addEventListener('pagehide',event=>{if(!event.persisted){vinyl?.dispose();vinyl=null;}});
+  if(scene.dataset.interactive!=='true'){render(target);continue;}
+  const button=scene.querySelector('[data-link-start]'),comment=scene.querySelector('[data-link-comment]');
+  const root=scene.closest('[data-link-results]')||scene;
+  const groups=[...root.querySelectorAll('[data-link-reveal]')];
+  const pool=JSON.parse(scene.dataset.comments||'[]');
+  let previous='',frame=0,revealTimer,started=0,hiddenAt=0,scrollOrigin=0;
+  const finish=()=>{
+    running=false;complete=true;elapsedMs=12400;
     document.body.classList.remove('bgl-performing');
-    render(target); scene.classList.remove('is-running','is-scanning'); scene.classList.add('is-complete');
+    scene.classList.remove('is-running','is-scanning');scene.classList.add('is-complete');
+    render(target);
     const choices=pool.filter(text=>text!==previous);
     previous=choices[Math.floor(Math.random()*choices.length)]||pool[0]||'Two collections. Plenty to explore.';
     comment.textContent=previous;
-    for (const group of groups) {group.hidden=false; group.classList.add('revealing');}
-    button.disabled=false; button.textContent=isGerman?'↻ NOCH EINMAL':'↻ PLAY IT AGAIN';
+    for(const group of groups){group.hidden=false;group.classList.add('revealing');}
+    button.disabled=false;button.textContent=isGerman?'↻ NOCH EINMAL':'↻ PLAY IT AGAIN';
     scene.setAttribute('aria-busy','false');
     revealTimer=setTimeout(()=>document.dispatchEvent(new CustomEvent('bgl:complete',{detail:{score:target}})),reduced.matches?0:200);
   };
+  // Header is an overlay while this scene is active. Revealing it never shifts the result/chat.
+  window.addEventListener('scroll',()=>{
+    if(document.body.classList.contains('bgl-focus')&&Math.abs(scrollY-scrollOrigin)>12)document.body.classList.add('bgl-header-visible');
+  },{passive:true});
+  const tick=now=>{
+    if(document.hidden){hiddenAt=now;frame=0;return;}
+    elapsedMs=now-started;
+    const progress=Math.max(0,Math.min(1,(elapsedMs-4800)/6800)),eased=progress*progress*(3-2*progress);
+    if(elapsedMs>=4800)scene.classList.add('is-scanning');
+    if(target===0)render(14*Math.sin(Math.PI*progress),progress>.98?0:null);
+    else render(target*eased,elapsedMs<4800?null:target*eased);
+    if(elapsedMs<12400)frame=requestAnimationFrame(tick);else finish();
+  };
+  document.addEventListener('visibilitychange',()=>{
+    if(!running)return;
+    if(document.hidden){hiddenAt=performance.now();cancelAnimationFrame(frame);frame=0;}
+    else {if(hiddenAt)started+=performance.now()-hiddenAt;hiddenAt=0;frame=requestAnimationFrame(tick);}
+  });
   button.addEventListener('click',()=>{
-    clearTimeout(revealTimer); cancelAnimationFrame(frame);
+    clearTimeout(revealTimer);cancelAnimationFrame(frame);
     groups.forEach(group=>{group.hidden=true;group.classList.remove('revealing');});
-    // Restart only the scene's CSS choreography, keeping the live conversation intact.
-    scene.classList.remove('is-complete','is-running','is-scanning'); void scene.offsetWidth;
+    scene.classList.remove('is-complete','is-running','is-scanning');void scene.offsetWidth;
     scene.classList.add('is-running');scene.setAttribute('aria-busy','true');button.disabled=true;
+    running=true;complete=false;elapsedMs=0;hiddenAt=0;
     comment.textContent=isGerman?'Zwei Collections. Ein Nadelstich.':'Two collections. One needle drop.';
     render(0,null);
-    if (reduced.matches) {finish();return;}
-    document.body.style.setProperty('--stage-header-height',document.querySelector('body>header').offsetHeight+'px');
-    document.body.classList.add('bgl-performing');
-    const started=performance.now(), arrival=3000, scan=6200;
-    const tick=now=>{
-      const elapsed=now-started, progress=Math.max(0,Math.min(1,(elapsed-arrival)/scan));
-      if (elapsed>=arrival) scene.classList.add('is-scanning');
-      const eased=progress*progress*(3-2*progress);
-      // A zero-result scan searches, then drains back to zero. Never show a fictitious score.
-      if (target===0) render(18*Math.sin(Math.PI*progress),progress>.88?0:null);
-      else render(target*eased,elapsed<arrival?null:target*eased);
-      if (elapsed<arrival+scan+900) frame=requestAnimationFrame(tick); else finish();
-    };
-    frame=requestAnimationFrame(tick);
+    if(reduced.matches){finish();return;}
+    scrollOrigin=scrollY;document.body.classList.remove('bgl-header-visible');
+    document.body.classList.add('bgl-performing','bgl-focus');
+    started=performance.now();frame=requestAnimationFrame(tick);
   });
-  scene.classList.remove('is-complete');groups.forEach(group=>{group.hidden=true;});render(0,null);
-  reduced.addEventListener('change',()=>{if(reduced.matches&&button.disabled){cancelAnimationFrame(frame);finish();}});
+  complete=false;scene.classList.remove('is-complete');groups.forEach(group=>{group.hidden=true;});render(0,null);
+  reduced.addEventListener('change',()=>{if(reduced.matches&&running){cancelAnimationFrame(frame);finish();}});
   if(scene.dataset.presentation==='true'||scene.dataset.autostart==='true')button.click();
 }
 
