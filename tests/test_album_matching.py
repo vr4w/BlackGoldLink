@@ -119,12 +119,14 @@ class AlbumExperience(unittest.TestCase):
         self.assertIn('180g',page)
         self.assertIn('https://www.discogs.com/release/2',page)
 
-    def test_pressing_pairs_show_artist_and_only_one_shared_explanation(self):
+    def test_compact_pressing_pairs_have_inline_artist_and_one_owner_heading(self):
         record=test_discovery.record
         self.setup_collections([record(1,artist=12,master=42),record(3,artist=13,master=43)],[(2,'OtherCollector',[record(2,artist=12,master=42),record(4,artist=13,master=43)])])
         page=self.client.get('/compare/2').get_data(as_text=True)
-        self.assertEqual(page.count('Same album. Different versions. Still one BlackGoldLink match.'),1)
-        self.assertIn('<h3>Artist 12</h3><p>Album 1</p>',page)
+        self.assertNotIn('Same album. Different versions. Still one BlackGoldLink match.',page)
+        self.assertIn('<span class="pressing-artist">Artist 12</span><strong>Album 1</strong>',page)
+        self.assertNotIn('pressing-album-heading',page)
+        self.assertEqual(page.count('pressing-owners'),1)
         self.assertIn('pressing-own',page)
         self.assertIn('pressing-peer',page)
         self.assertIn('Data provided by Discogs. ↗',page)
