@@ -4,6 +4,7 @@ const isGerman = document.body.dataset.language === 'de';
   const area = document.querySelector('[data-collection-matches][data-endpoint]');
   if (!area) return;
   let busy = false, stopped = false, timer, previous = area.innerHTML;
+  document.addEventListener('bgl:data-expired',()=>{stopped=true;clearTimeout(timer);});
   const message = document.createElement('p');
   message.className = 'match-update-status';
   message.setAttribute('role', 'status');
@@ -127,6 +128,7 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
     const pastScene=scene.getBoundingClientRect().bottom<=Math.max(100,innerHeight*.45);
     document.body.classList.toggle('bgl-header-visible',pastScene);
   },{passive:true});
+  document.addEventListener('bgl:data-expired',()=>{running=false;cancelAnimationFrame(frame);clearTimeout(revealTimer);vinyl?.dispose();vinyl=null;document.body.classList.remove('bgl-performing','bgl-focus','bgl-header-visible');});
   const tick=now=>{
     if(document.hidden){hiddenAt=now;frame=0;return;}
     elapsedMs=now-started;

@@ -10,3 +10,5 @@
 <div class="collector-grid">{% for match in matches[:6] %}{{ match_row(match,loop.first) }}{% else %}<p class="fine">{{ t('Your next BlackGoldLink is on its way.') if comparison_refreshing else t('Bring another collection. Start a BlackGoldLink.') }}</p>{% endfor %}</div>
 {% if matches|length>6 %}<details class="more-collections"><summary>{{ t('More collectors') }} ({{ matches|length-6 }})</summary><div class="collector-grid">{% for match in matches[6:] %}{{ match_row(match) }}{% endfor %}</div></details>{% endif %}
 {% endif %}
+
+{% if matching_approved and user.visible and matches %}<p class="attribution"><a href="https://www.discogs.com/user/{{ user.username|urlencode }}/collection">Data provided by Discogs.</a></p>{% endif %}

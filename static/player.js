@@ -110,6 +110,7 @@ if (musicPanel) {
     musicPanel.querySelector('[data-music-next]').disabled=false;
   }
   musicPanel.querySelector('[data-music-stop]').addEventListener('click',stop);
+  document.addEventListener('bgl:data-expired',stop);
   musicPanel.addEventListener('toggle',() => {if (!musicPanel.open) stop();});
   document.addEventListener('visibilitychange',()=>{if(document.hidden) player?.pauseVideo();});
   // Show the invitation once per login session in this tab when a fresh import is available.

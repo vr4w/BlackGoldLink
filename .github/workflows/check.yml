@@ -38,6 +38,7 @@ jobs:
         run: |
           node tests/vinyl-motion.mjs
           node tests/vinyl-start.mjs
+          node tests/freshness.mjs
       - name: Package tracked source only
         run: python deployment/package-release.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

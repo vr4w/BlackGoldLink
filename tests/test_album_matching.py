@@ -90,7 +90,7 @@ class AlbumExperience(unittest.TestCase):
         record=test_discovery.record
         self.setup_collections([record(1,master=42)],[(2,'OtherCollector',[record(2,master=42)])])
         page=self.client.get('/app').get_data(as_text=True)
-        header,main=page.split('<main>',1)
+        header,main=page.split('<main',1)
         self.assertIn('header-profile',header)
         self.assertIn('test-user',header)
         self.assertIn('Edit profile',header)
@@ -118,6 +118,29 @@ class AlbumExperience(unittest.TestCase):
         self.assertIn('Same albums. Different pressings.',page)
         self.assertIn('180g',page)
         self.assertIn('https://www.discogs.com/release/2',page)
+
+    def test_pressing_pairs_show_artist_and_only_one_shared_explanation(self):
+        record=test_discovery.record
+        self.setup_collections([record(1,artist=12,master=42),record(3,artist=13,master=43)],[(2,'OtherCollector',[record(2,artist=12,master=42),record(4,artist=13,master=43)])])
+        page=self.client.get('/compare/2').get_data(as_text=True)
+        self.assertEqual(page.count('Same album. Different versions. Still one BlackGoldLink match.'),1)
+        self.assertIn('<h3>Artist 12</h3><p>Album 1</p>',page)
+        self.assertIn('pressing-own',page)
+        self.assertIn('pressing-peer',page)
+        self.assertIn('Data provided by Discogs. ↗',page)
+
+    def test_open_comparison_lifetime_uses_oldest_of_both_imports(self):
+        record=test_discovery.record
+        self.setup_collections([record(1,master=42)],[(2,'OtherCollector',[record(2,master=42)])])
+        db=connection(self.app)
+        db.execute('UPDATE snapshots SET fetched_at=? WHERE user_id=2',(time.time()-6*3600+90,))
+        db.commit();db.close()
+        import re
+        page=self.client.get('/compare/2').get_data(as_text=True)
+        lifetime=int(re.search(r'data-discogs-valid-ms="(\d+)"',page).group(1))
+        self.assertTrue(85000<lifetime<=90000)
+        self.assertIn('/static/freshness.js',page)
+        self.assertNotIn('data-discogs-valid-ms',self.client.get('/demo').get_data(as_text=True))
 
     def test_accepted_chat_keeps_messages_and_score_aware_online_copy(self):
         record=test_discovery.record

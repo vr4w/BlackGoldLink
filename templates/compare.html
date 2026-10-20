@@ -4,11 +4,13 @@
 {% if demo %}<div class="notice">{{ t('TESTSEITE / DEMO · Alle Profile, Releases und Cover sind erfunden. Echte Discogs-Daten werden hier nicht verwendet.') }}</div>{% endif %}
 <div class="comparison-root" data-link-results>
 {{ link_scene(name_a,name_b,result.score,comments=comment_options,personal=not demo,autostart=autostart) }}
+{% if not demo %}<p class="attribution comparison-source"><a href="https://www.discogs.com/user/{{ discogs_a|urlencode }}/collection">Data provided by Discogs. · {{ name_a }}</a> · <a href="https://www.discogs.com/user/{{ discogs_b|urlencode }}/collection">Data provided by Discogs. · {{ name_b }}</a></p>{% endif %}
 {% if not demo and chat_peer %}<div class="comparison-conversation" data-link-reveal>{% include 'components/chat.html' %}</div>{% endif %}
 {% if not result.a_size or not result.b_size %}<section class="zero-link-summary" data-link-reveal><h2>{{ t('Not enough records yet.') }}</h2><p>{{ t('One collection is empty. Sync your records before comparing.') }}</p></section>{% endif %}
 {% include 'components/collection_discoveries.html' %}
 {% include 'components/pressing_comparison.html' %}
 {% if not result.album_common %}<details class="zero-link-details" data-link-reveal><summary>{{ t('Show details anyway') }}</summary>{% endif %}
+{% if not demo %}<p class="attribution" data-link-reveal><a href="https://www.discogs.com/user/{{ discogs_a|urlencode }}/collection">Data provided by Discogs. · {{ name_a }}</a> · <a href="https://www.discogs.com/user/{{ discogs_b|urlencode }}/collection">{{ name_b }}</a></p>{% endif %}
 <section class="quick-stats grid three metrics" data-link-reveal>
 <article class="card"><strong>{{ result.album_common|length }}</strong><span>{{ t('Shared albums ·') }} {{ result.artists_common|length }} Artists · {{ result.genres_common|length }} Genres</span></article>
 <article class="card"><strong>{{ result.artist_score }} %</strong><span>{{ t('Artist Similarity') }}</span></article>

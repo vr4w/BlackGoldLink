@@ -38,3 +38,18 @@ body:not(.bgl-performing) main{transition:transform .8s}
 body.bgl-performing .link-cinema{min-height:calc(100svh - 20px)}
 @media(max-width:600px){.name-leader{width:65px;height:30px}.presentation-intro h1{font-size:20px}}
 @media(prefers-reduced-motion:reduce){body>header,body main{transition:none!important}.name-leader path{stroke-dashoffset:0}}
+/* Version pairs meet in the centre, with artist and album stated once above. */
+.pressing-pair{padding:24px clamp(14px,3vw,36px)}
+.pressing-album-heading{display:block;padding:0;margin:0 0 22px;background:none;color:inherit;border:0;text-align:center}
+.pressing-album-heading h3{font-size:clamp(20px,2.2vw,27px);letter-spacing:-.5px;line-height:1.2;overflow-wrap:anywhere}
+.pressing-album-heading p{font-size:16px;margin:5px 0 0;color:#6b6b63}
+.pressing-columns{gap:32px;max-width:900px;margin:auto}
+.pressing-side{min-width:0}.pressing-own{text-align:right}.pressing-peer{text-align:left}
+.pressing-side h4{margin-bottom:10px;font-size:12px}
+.pressing-release{gap:14px;align-items:center;padding:8px;border-radius:3px}
+.pressing-own .pressing-release{flex-direction:row-reverse}
+.pressing-release>span{flex:1;overflow-wrap:anywhere}
+.pressing-release .release-cover{width:clamp(80px,9vw,116px);height:auto;aspect-ratio:1}
+.pressing-release strong{font-size:14px}.pressing-release small{font-size:11px;line-height:1.5}
+.pressing-release .pressing-source{font-size:9px;color:#777;margin-top:5px}
+@media(max-width:600px){.pressing-columns{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.pressing-release,.pressing-own .pressing-release{flex-direction:column;align-items:stretch;padding:0}.pressing-release .release-cover{width:100%;max-width:130px}.pressing-own .release-cover{align-self:flex-end}.pressing-peer .release-cover{align-self:flex-start}.pressing-album-heading{margin-bottom:17px}.pressing-release strong{font-size:12px}.pressing-release small{font-size:10px}}

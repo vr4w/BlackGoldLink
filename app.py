@@ -154,7 +154,16 @@ def create_app(overrides=None):
         members=[]
         if g.user and g.user['visible'] and app.config['MATCHING_APPROVED']:
             members=list(g.db.execute('SELECT u.id,u.username,u.display_name,u.handle FROM users u JOIN snapshots s ON u.id=s.user_id WHERE u.id!=? AND u.visible=1 AND s.fetched_at>? ORDER BY u.username LIMIT 100',(g.user['id'],time.time()-TTL)))
-        return dict(consent_scope=CONSENT_SCOPE,is_admin=is_admin(app,g.user),release_version=app.extensions['release_version'],social_panel=social_panel,current_year=time.localtime().tm_year,t=t,language=g.language,members=members,title=app.config['WORKING_TITLE'], user=g.user, csrf=session['csrf'], matching_approved=app.config['MATCHING_APPROVED'],
+        # Open tabs get the same conservative lifetime as their authorized snapshots.
+        data_valid_ms=None
+        if g.user and request.endpoint in ('dashboard','comparison'):
+            now=time.time()
+            if request.endpoint=='comparison':
+                row=g.db.execute('SELECT min(fetched_at) AS oldest FROM snapshots WHERE user_id IN (?,?) AND fetched_at>?',(g.user['id'],request.view_args['uid'],now-TTL)).fetchone()
+            else:
+                row=g.db.execute('SELECT min(s.fetched_at) AS oldest FROM snapshots s JOIN users u ON u.id=s.user_id WHERE s.fetched_at>? AND (u.id=? OR (? AND ? AND u.visible=1))',(now-TTL,g.user['id'],int(app.config['MATCHING_APPROVED']),g.user['visible'])).fetchone()
+            if row['oldest'] is not None:data_valid_ms=max(0,int((row['oldest']+TTL-now)*1000))
+        return dict(data_valid_ms=data_valid_ms,consent_scope=CONSENT_SCOPE,is_admin=is_admin(app,g.user),release_version=app.extensions['release_version'],social_panel=social_panel,current_year=time.localtime().tm_year,t=t,language=g.language,members=members,title=app.config['WORKING_TITLE'], user=g.user, csrf=session['csrf'], matching_approved=app.config['MATCHING_APPROVED'],
                     configured=bool(app.extensions['cipher'] and app.config['DISCOGS_CONSUMER_KEY'] and app.config['DISCOGS_CONSUMER_SECRET']),
                     base_url=app.config['BASE_URL'], config=app.config,music_prompt=session.get('music_prompt',''),
                     music_ready=bool(g.user and g.db.execute('SELECT user_id FROM snapshots WHERE user_id=? AND fetched_at>?',(g.user['id'],time.time()-TTL)).fetchone()))
