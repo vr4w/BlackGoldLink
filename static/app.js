@@ -80,7 +80,7 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
   const number=scene.querySelector('[data-link-number]');
   const masks=[...scene.querySelectorAll('[data-scan-inner]')];
   const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-  let vinyl=null,elapsedMs=0,depth=target,running=false,complete=true;
+  let vinyl=null,elapsedMs=0,depth=target,running=false,complete=true,dataExpired=false;
   const publish=()=>{
     try {vinyl?.update({elapsedMs,depth,running,complete,reduced:reduced.matches});}
     catch(error){vinyl?.dispose();vinyl=null;}
@@ -97,7 +97,7 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
     const timeout=setTimeout(choose,8000);
     if(new URLSearchParams(location.search).get('graphics')==='2d'){choose();return;}
     import('./vinyl3d.js').then(({createVinylScene})=>{
-      if(rendererChosen)return;
+      if(rendererChosen||dataExpired){choose();return;}
       vinyl=createVinylScene(scene,{onFailure:()=>{vinyl=null;}});
       publish();choose();
     }).catch(()=>{scene.querySelector('[data-vinyl-3d]')?.replaceChildren();choose();});
@@ -128,7 +128,7 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
     const pastScene=scene.getBoundingClientRect().bottom<=Math.max(100,innerHeight*.45);
     document.body.classList.toggle('bgl-header-visible',pastScene);
   },{passive:true});
-  document.addEventListener('bgl:data-expired',()=>{running=false;cancelAnimationFrame(frame);clearTimeout(revealTimer);vinyl?.dispose();vinyl=null;document.body.classList.remove('bgl-performing','bgl-focus','bgl-header-visible');});
+  document.addEventListener('bgl:data-expired',()=>{dataExpired=true;running=false;cancelAnimationFrame(frame);clearTimeout(revealTimer);vinyl?.dispose();vinyl=null;document.body.classList.remove('bgl-performing','bgl-focus','bgl-header-visible');});
   const tick=now=>{
     if(document.hidden){hiddenAt=now;frame=0;return;}
     elapsedMs=now-started;
@@ -148,6 +148,7 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
     groups.forEach(group=>{group.hidden=true;group.classList.remove('revealing');});
     button.disabled=true;scene.classList.add('is-preparing');scene.setAttribute('aria-busy','true');
     await rendererReady;
+    if(dataExpired)return;
     scene.classList.remove('is-preparing','is-complete','is-running','is-scanning');void scene.offsetWidth;
     scene.classList.add('is-running');scene.setAttribute('aria-busy','true');button.disabled=true;
     running=true;complete=false;elapsedMs=0;hiddenAt=0;
