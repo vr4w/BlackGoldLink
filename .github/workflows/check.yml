@@ -35,7 +35,9 @@ jobs:
           for file in static/*.js; do node --check "$file"; done
           for file in deployment/*.sh; do bash -n "$file"; done
       - name: Verify vinyl geometry
-        run: node tests/vinyl-motion.mjs
+        run: |
+          node tests/vinyl-motion.mjs
+          node tests/vinyl-start.mjs
       - name: Package tracked source only
         run: python deployment/package-release.py
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

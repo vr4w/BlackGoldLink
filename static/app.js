@@ -89,18 +89,25 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
     for(const mask of masks)mask.setAttribute('r',(121-77*depth/100).toFixed(3));
     publish();
   };
-  if(new URLSearchParams(location.search).get('graphics')!=='2d') {
+  // Choose one renderer before the timeline starts, including a cold-cache load.
+  let rendererChosen=false;
+  const rendererReady=new Promise(resolve=>{
+    const choose=()=>{if(rendererChosen)return;rendererChosen=true;clearTimeout(timeout);resolve();};
+    const timeout=setTimeout(choose,8000);
+    if(new URLSearchParams(location.search).get('graphics')==='2d'){choose();return;}
     import('./vinyl3d.js').then(({createVinylScene})=>{
-      vinyl=createVinylScene(scene,{onFailure:()=>{vinyl=null;}});publish();
-    }).catch(()=>{scene.querySelector('[data-vinyl-3d]')?.replaceChildren();});
-  }
+      if(rendererChosen)return;
+      vinyl=createVinylScene(scene,{onFailure:()=>{vinyl=null;}});
+      publish();choose();
+    }).catch(()=>{scene.querySelector('[data-vinyl-3d]')?.replaceChildren();choose();});
+  });
   window.addEventListener('pagehide',event=>{if(!event.persisted){vinyl?.dispose();vinyl=null;}});
-  if(scene.dataset.interactive!=='true'){render(target);continue;}
+  if(scene.dataset.interactive!=='true'){rendererReady.then(()=>render(target));continue;}
   const button=scene.querySelector('[data-link-start]'),comment=scene.querySelector('[data-link-comment]');
   const root=scene.closest('[data-link-results]')||scene;
   const groups=[...root.querySelectorAll('[data-link-reveal]')];
   const pool=JSON.parse(scene.dataset.comments||'[]');
-  let previous='',frame=0,revealTimer,started=0,hiddenAt=0,scrollOrigin=0;
+  let previous='',frame=0,revealTimer,started=0,hiddenAt=0;
   const finish=()=>{
     running=false;complete=true;elapsedMs=12400;
     document.body.classList.remove('bgl-performing');
@@ -116,7 +123,9 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
   };
   // Header is an overlay while this scene is active. Revealing it never shifts the result/chat.
   window.addEventListener('scroll',()=>{
-    if(document.body.classList.contains('bgl-focus')&&Math.abs(scrollY-scrollOrigin)>12)document.body.classList.add('bgl-header-visible');
+    if(!document.body.classList.contains('bgl-focus'))return;
+    const pastScene=scene.getBoundingClientRect().bottom<=Math.max(100,innerHeight*.45);
+    document.body.classList.toggle('bgl-header-visible',pastScene);
   },{passive:true});
   const tick=now=>{
     if(document.hidden){hiddenAt=now;frame=0;return;}
@@ -132,16 +141,18 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
     if(document.hidden){hiddenAt=performance.now();cancelAnimationFrame(frame);frame=0;}
     else {if(hiddenAt)started+=performance.now()-hiddenAt;hiddenAt=0;frame=requestAnimationFrame(tick);}
   });
-  button.addEventListener('click',()=>{
+  button.addEventListener('click',async()=>{
     clearTimeout(revealTimer);cancelAnimationFrame(frame);
     groups.forEach(group=>{group.hidden=true;group.classList.remove('revealing');});
-    scene.classList.remove('is-complete','is-running','is-scanning');void scene.offsetWidth;
+    button.disabled=true;scene.classList.add('is-preparing');scene.setAttribute('aria-busy','true');
+    await rendererReady;
+    scene.classList.remove('is-preparing','is-complete','is-running','is-scanning');void scene.offsetWidth;
     scene.classList.add('is-running');scene.setAttribute('aria-busy','true');button.disabled=true;
     running=true;complete=false;elapsedMs=0;hiddenAt=0;
     comment.textContent=isGerman?'Zwei Collections. Ein Nadelstich.':'Two collections. One needle drop.';
     render(0,null);
     if(reduced.matches){finish();return;}
-    scrollOrigin=scrollY;document.body.classList.remove('bgl-header-visible');
+    document.body.classList.remove('bgl-header-visible');
     document.body.classList.add('bgl-performing','bgl-focus');
     started=performance.now();frame=requestAnimationFrame(tick);
   });

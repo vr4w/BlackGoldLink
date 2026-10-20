@@ -18,3 +18,18 @@ body.bgl-focus main{transform:none!important}
 body.bgl-focus .link-cinema{min-height:0}
 @media(max-width:600px){.link-cinema .link-names{top:59%;left:6%;right:6%}.link-cinema .link-names>div{max-width:43%}.link-cinema .link-names>div:last-child{transform:translateY(-190px)}.link-cinema .link-score{bottom:24px}}
 @media(prefers-reduced-motion:reduce){body.bgl-focus>header{position:relative;opacity:1;transform:none;pointer-events:auto}}
+
+/* A cold load shows only the central logo until a single renderer is ready. */
+.link-cinema.is-preparing .link-vinyl,.link-cinema.is-preparing .vinyl-3d-mount,.link-cinema.is-preparing .cinema-halo,.link-cinema.is-preparing .link-names,.link-cinema.is-preparing .link-score,.link-cinema.is-preparing .link-controls{visibility:hidden}
+.link-cinema.is-preparing .cinema-logo{top:44%;transform:translate(-50%,-50%);animation:scene-ready-pulse 1.5s ease-in-out infinite}
+@keyframes scene-ready-pulse{50%{opacity:.65}}
+/* The first viewport belongs to the scene; navigation returns beyond its bottom. */
+body:has([data-blackgold-link][data-autostart="true"])>header,body:has([data-blackgold-link][data-presentation="true"])>header{position:fixed;inset:0 0 auto;z-index:60;opacity:0;transform:translateY(-100%);pointer-events:none}
+body.bgl-header-visible>header{opacity:1!important;transform:translateY(0)!important;pointer-events:auto!important}
+body.bgl-header-visible .cinema-logo{opacity:0;visibility:hidden}
+body:has([data-blackgold-link]) main{padding-top:0}
+.presentation-landing>.link-cinema{margin-bottom:0}
+.presentation-landing>.presentation-intro,.presentation-landing>.presentation-actions{margin:0 calc(50% - 50vw);background:#101111;color:#d8d9d0;padding:12px 20px;text-align:center}
+.presentation-landing>.presentation-intro h1{font-size:clamp(17px,2vw,22px);margin:0}
+.presentation-landing>.presentation-actions{padding-bottom:28px}
+@media(prefers-reduced-motion:reduce){.link-cinema.is-preparing .cinema-logo{animation:none}}

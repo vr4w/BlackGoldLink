@@ -18,6 +18,11 @@ class Vinyl3D(unittest.TestCase):
             self.assertNotIn(copy,page)
         self.assertIn(b'Compare your collection with others.',page)
         self.assertIn(b'brand/blackgoldlink-logo.png',page)
+    def test_autostart_is_prepared_and_intro_follows_the_scene(self):
+        page=self.client.get('/').data.decode()
+        self.assertIn('is-preparing" data-presentation="true"',page)
+        self.assertLess(page.index('data-blackgold-link'),page.index('class="presentation-intro"'))
+        self.assertIn('<noscript><p class="fine">Your collection · The other collector · 70.7%',page)
     def test_actual_names_are_escaped_and_never_interpreted_as_html(self):
         with self.app.test_request_context('/'):
             self.app.preprocess_request()
