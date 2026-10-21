@@ -1,8 +1,14 @@
 {% extends 'base.html' %}{% from 'components/blackgold_link.html' import link_scene,release_cover with context %}{% block content %}
 <div class="presentation-landing" data-link-results>
 {{ link_scene(t('Your collection'),t('The other collector'),demo_score,prefix='landing',interactive=true,presentation=true,comments=[t('Different collections. Shared discoveries.')]) }}
-<section class="presentation-intro"><h1>{{ t('Compare your collection with others.') }}</h1></section>
+<section class="presentation-intro"><h1>{{ t('Compare your collection with others.') }}</h1>
+<p class="presentation-explainer">{{ t('You just saw two fictional collections compared. The score shows how much they share. The covers below show records one collector owns and the other does not.') }}</p>
+<ol class="presentation-next">
+<li><span aria-hidden="true">01</span><div><h2>{{ t('Connect Discogs') }}</h2><p>{{ t('Import your collection and wantlist for comparisons with other members. Nothing on Discogs is changed.') }}</p></div></li>
+<li><span aria-hidden="true">02</span><div><h2>{{ t('Find similar collectors') }}</h2><p>{{ t('See whose collection overlaps with yours — then start your own BlackGoldLink.') }}</p></div></li>
+<li><span aria-hidden="true">03</span><div><h2>{{ t('Discover what’s missing') }}</h2><p>{{ t('Explore albums they own and you don’t. Wantlist matches and possible trades are the bonus.') }}</p></div></li>
+</ol></section>
 <div class="presentation-actions"><a class="button" href="{{ url_for('invite') }}">{{ t('Mit Discogs anmelden ↗') }}</a></div>
 <section class="presentation-hits" data-link-reveal><div class="presentation-stat"><strong>{{ demo_common }}</strong><span>{{ t('shared releases') }}</span></div><div><div class="eyebrow">{{ t('New to your collection') }}</div><div class="presentation-sleeves">{% for release in demo_discoveries %}<div>{{ release_cover(release,true) }}<span>{{ release.title }}</span></div>{% endfor %}</div></div><div><div class="eyebrow">{{ t('New to their collection') }}</div><div class="presentation-sleeves">{% for release in demo_other_discoveries %}<div>{{ release_cover(release,true) }}<span>{{ release.title }}</span></div>{% endfor %}</div></div></section>
-<p class="presentation-note">{{ t('Fictional preview. Your own collection starts with Discogs sign-in.') }}</p>
+
 </div>{% endblock %}

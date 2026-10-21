@@ -33,3 +33,13 @@ body:has([data-blackgold-link]) main{padding-top:0}
 .presentation-landing>.presentation-intro h1{font-size:clamp(17px,2vw,22px);margin:0}
 .presentation-landing>.presentation-actions{padding-bottom:28px}
 @media(prefers-reduced-motion:reduce){.link-cinema.is-preparing .cinema-logo{animation:none}}
+
+/* A short bridge from the fictional scan to the visitor's own collection. */
+.presentation-landing>.presentation-intro{padding-top:26px}
+.presentation-intro .presentation-explainer{font-size:14px;line-height:1.65;color:#aeb5ae;max-width:650px;margin:12px auto 26px;text-wrap:pretty}
+.presentation-next{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px;max-width:980px;margin:0 auto;padding:0 0 12px;list-style:none;text-align:left}
+.presentation-next li{display:flex;gap:12px;min-width:0}
+.presentation-next li>span{font-size:12px;line-height:1.7;color:#b6a170;font-variant-numeric:tabular-nums}
+.presentation-next h2{font-size:16px;margin:0 0 6px;color:#ece8de;letter-spacing:-.2px}
+.presentation-intro .presentation-next p{font-size:13px;line-height:1.6;color:#aeb5ae;margin:0}
+@media(max-width:650px){.presentation-next{grid-template-columns:1fr;gap:18px;max-width:390px}.presentation-intro .presentation-explainer{font-size:13px;margin-bottom:24px}.presentation-intro .presentation-next p{max-width:none}.presentation-next h2{font-size:15px}}
