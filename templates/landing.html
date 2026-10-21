@@ -1,6 +1,6 @@
 {% extends 'base.html' %}{% from 'components/blackgold_link.html' import link_scene,release_cover with context %}{% block content %}
 <div class="presentation-landing" data-link-results>
-{{ link_scene(t('Your collection'),t('The other collector'),demo_score,prefix='landing',interactive=true,presentation=true,comments=[t('Different collections. Shared discoveries.')]) }}
+{{ link_scene(t('Your collection'),t('The other collection'),demo_score,prefix='landing',interactive=true,presentation=true,comments=[t('Different collections. Shared discoveries.')]) }}
 <section class="presentation-intro"><h1>{{ t('Compare your collection with others.') }}</h1>
 <p class="presentation-explainer">{{ t('You just saw two fictional collections compared. The score shows how much they share. The covers below show records one collector owns and the other does not.') }}</p>
 <ol class="presentation-next">

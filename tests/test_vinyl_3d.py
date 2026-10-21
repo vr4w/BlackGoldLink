@@ -22,7 +22,7 @@ class Vinyl3D(unittest.TestCase):
         page=self.client.get('/').data.decode()
         self.assertIn('is-preparing" data-presentation="true"',page)
         self.assertLess(page.index('data-blackgold-link'),page.index('class="presentation-intro"'))
-        self.assertIn('<noscript><p class="fine">Your collection · The other collector · 70.7%',page)
+        self.assertIn('<noscript><p class="fine">Your collection · The other collection · 70.7%',page)
     def test_common_disclaimer_is_present_on_public_pages(self):
         notice='This application uses Discogs’ API but is not affiliated with, sponsored or endorsed by Discogs. ‘Discogs’ is a trademark of Zink Media, LLC.'
         for path in ('/','/about','/privacy','/imprint','/invite'):

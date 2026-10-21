@@ -20,7 +20,7 @@ class Presentation(unittest.TestCase):
     def test_landing_presents_visual_before_explanations(self):
         page=self.client.get('/').data
         self.assertIn(b'Your collection',page)
-        self.assertIn(b'The other collector',page)
+        self.assertIn(b'The other collection',page)
         self.assertIn(b'data-presentation="true"',page)
         self.assertNotIn(b'presentation-about',page)
         self.assertNotIn(b'Explore the demo',page)
