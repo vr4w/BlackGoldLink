@@ -34,6 +34,7 @@ assert.equal(cold.frames.length,0,'no 2D timeline while 3D is loading');
 cold.ready();await flush();
 assert.equal(cold.created(),1);assert(cold.scene.classList.contains('is-running'));
 assert.equal(cold.frames.length,1);assert.equal(cold.updates.at(-1).elapsedMs,0,'3D starts from frame zero');
+cold.frames[0](12400);assert.equal(cold.button.textContent,'BlackGoldLink again, please!');
 cold.scroll(650);assert(!cold.body.classList.contains('bgl-header-visible'),'small scroll keeps the cinematic header hidden');
 cold.scroll(267);assert(cold.body.classList.contains('bgl-header-visible'));
 cold.scroll(650);assert(!cold.body.classList.contains('bgl-header-visible'),'scrolling back restores central logo');

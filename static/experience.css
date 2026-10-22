@@ -52,3 +52,10 @@ body.bgl-performing .link-cinema{min-height:calc(100svh - 20px)}
 .pressing-release strong{font-size:14px}.pressing-release small{font-size:11px;line-height:1.4}
 .pressing-release .pressing-source{font-size:9px;color:#777;margin-top:4px}
 @media(max-width:600px){.pressing-columns{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.pressing-release,.pressing-own .pressing-release{flex-direction:column;align-items:stretch;padding:0}.pressing-release .release-cover{width:100%;max-width:130px}.pressing-own .release-cover{align-self:flex-end}.pressing-peer .release-cover{align-self:flex-start}.pressing-release strong{font-size:12px}.pressing-artist,.pressing-release small{font-size:10px}}
+
+/* Each release group scrolls independently instead of stretching the page. */
+.comparison-root .compare-layout{align-items:start}
+.comparison-root .release-scroll{max-height:clamp(240px,55svh,460px);overflow-y:auto;overscroll-behavior-y:contain;scrollbar-gutter:stable}
+.comparison-root .release-scroll:focus-visible{outline:2px solid #a48b4d;outline-offset:-2px}
+.comparison-root .filter-empty{padding:12px 14px;margin:0}
+@media(max-width:600px){.comparison-root .release-scroll{max-height:360px}}

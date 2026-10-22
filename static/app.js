@@ -52,6 +52,8 @@ search?.addEventListener('input', () => {
   for (const section of document.querySelectorAll('.release-section')) {
     const rows = [...section.querySelectorAll('[data-release]')];
     for (const row of rows) row.hidden = !row.dataset.release.includes(query);
+    const viewport=section.querySelector('.release-scroll');
+    if(viewport)viewport.scrollTop=0;
     const empty = section.querySelector('.filter-empty');
     if (empty) empty.hidden = !rows.length || rows.some(row => !row.hidden);
   }
@@ -118,7 +120,7 @@ for (const scene of document.querySelectorAll('[data-blackgold-link]')) {
     previous=choices[Math.floor(Math.random()*choices.length)]||pool[0]||'Two collections. Plenty to explore.';
     comment.textContent=previous;
     for(const group of groups){group.hidden=false;group.classList.add('revealing');}
-    button.disabled=false;button.textContent=isGerman?'↻ NOCH EINMAL':'↻ PLAY IT AGAIN';
+    button.disabled=false;button.textContent=isGerman?'BlackGoldLink noch mal, bitte!':'BlackGoldLink again, please!';
     scene.setAttribute('aria-busy','false');
     revealTimer=setTimeout(()=>document.dispatchEvent(new CustomEvent('bgl:complete',{detail:{score:target}})),reduced.matches?0:200);
   };

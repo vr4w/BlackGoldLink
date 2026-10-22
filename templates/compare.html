@@ -3,8 +3,7 @@
 {% block content %}
 {% if demo %}<div class="notice">{{ t('TESTSEITE / DEMO · Alle Profile, Releases und Cover sind erfunden. Echte Discogs-Daten werden hier nicht verwendet.') }}</div>{% endif %}
 <div class="comparison-root" data-link-results>
-{{ link_scene(name_a,name_b,result.score,comments=comment_options,personal=not demo,autostart=autostart) }}
-{% if not demo %}<p class="attribution comparison-source"><a href="https://www.discogs.com/user/{{ discogs_a|urlencode }}/collection">Data provided by Discogs. · {{ name_a }}</a> · <a href="https://www.discogs.com/user/{{ discogs_b|urlencode }}/collection">Data provided by Discogs. · {{ name_b }}</a></p>{% endif %}
+{{ link_scene(name_a,name_b,result.score,comments=comment_options,personal=not demo,autostart=autostart,source_a=discogs_a if not demo else none,source_b=discogs_b if not demo else none) }}
 {% if not demo and chat_peer %}<div class="comparison-conversation" data-link-reveal>{% include 'components/chat.html' %}</div>{% endif %}
 {% if not result.a_size or not result.b_size %}<section class="zero-link-summary" data-link-reveal><h2>{{ t('Not enough records yet.') }}</h2><p>{{ t('One collection is empty. Sync your records before comparing.') }}</p></section>{% endif %}
 {% include 'components/collection_discoveries.html' %}

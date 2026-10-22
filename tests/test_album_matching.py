@@ -118,6 +118,12 @@ class AlbumExperience(unittest.TestCase):
         self.assertIn('Same albums. Different pressings.',page)
         self.assertIn('180g',page)
         self.assertIn('https://www.discogs.com/release/2',page)
+        scene=page.split('data-blackgold-link',1)[1].split('</section>',1)[0]
+        self.assertEqual(scene.count('class="link-attribution"'),2)
+        self.assertNotIn('comparison-source',page)
+        self.assertLess(scene.index('data-link-start'),scene.index('class="link-controls"'))
+        self.assertIn('class="release-scroll" tabindex="0" role="region"',page)
+
 
     def test_compact_pressing_pairs_have_inline_artist_and_one_owner_heading(self):
         record=test_discovery.record

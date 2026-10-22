@@ -43,3 +43,12 @@ body:has([data-blackgold-link]) main{padding-top:0}
 .presentation-next h2{font-size:16px;margin:0 0 6px;color:#ece8de;letter-spacing:-.2px}
 .presentation-intro .presentation-next p{font-size:13px;line-height:1.6;color:#aeb5ae;margin:0}
 @media(max-width:650px){.presentation-next{grid-template-columns:1fr;gap:18px;max-width:390px}.presentation-intro .presentation-explainer{font-size:13px;margin-bottom:24px}.presentation-intro .presentation-next p{max-width:none}.presentation-next h2{font-size:15px}}
+
+/* Give the punchline room; the repeat action belongs to the score. */
+.link-cinema .link-controls{min-height:88px;justify-content:flex-start;padding:12px 18px 18px}
+.link-cinema.is-complete .link-comment{font-size:clamp(20px,2.2vw,28px);line-height:1.35;font-weight:600;color:#ece8de;max-width:840px;text-wrap:balance}
+.link-cinema .link-score .link-start{position:absolute;left:calc(100% + 18px);top:22px;width:max-content;max-width:185px;letter-spacing:0;font-size:12px;text-transform:none;text-align:left;color:#bdb195;border:1px solid #a591593b;border-radius:18px;padding:7px 12px;line-height:1.4;min-height:0}
+.link-cinema .link-score .link-start:hover{color:#fff0c8;border-color:#bda26688;background:#ffffff08}
+.link-cinema .link-names .link-attribution{display:block;margin-top:6px;color:#9da99f;font-size:9px;letter-spacing:0;line-height:1.3;font-weight:400}
+.link-cinema .link-names .link-attribution:hover{color:#ece8de}
+@media(max-width:600px){.link-cinema .link-score .link-start{position:static;display:block;margin:10px auto 0;font-size:11px;max-width:none;text-align:center}.link-cinema .link-controls{padding-top:16px}.link-cinema .link-names .link-attribution{font-size:8px;max-width:125px}.link-cinema .link-names>div:last-child .link-attribution{margin-left:auto}}
