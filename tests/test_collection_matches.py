@@ -29,7 +29,7 @@ class AutomaticCollections(unittest.TestCase):
         self.assertNotIn('shared releases', page)
         for uid in range(2, 10):
             self.assertIn(f'href="/compare/{uid}?start=1"', page)
-        self.assertIn('Closest collection', page)
+        self.assertIn('Hot cut', page)
         self.assertIn('data-endpoint="/api/collection-matches"', page)
         self.assertIn('data-autostart="true"', self.client.get('/compare/2?start=1').get_data(as_text=True))
         self.assertIn('data-autostart="true"', self.client.get('/compare/2').get_data(as_text=True))
@@ -56,7 +56,7 @@ class AutomaticCollections(unittest.TestCase):
         self.assertEqual(response.headers['Cache-Control'], 'no-store')
         self.assertEqual(response.json['refreshing'], 0)
         self.assertIn('<strong>RefreshingShelf</strong>', response.json['html'])
-        self.assertIn('Closest collection', response.json['html'])
+        self.assertIn('Hot cut', response.json['html'])
         self.assertIn('data-target="70.7"',self.client.get('/compare/2').get_data(as_text=True))
         db = connection(self.app)
         self.assertEqual(db.execute('SELECT count(*) FROM sessions WHERE user_id=2').fetchone()[0], 0)
@@ -122,3 +122,24 @@ class AutomaticCollections(unittest.TestCase):
         self.assertIn('DistantShelf',page)
         self.assertNotIn('Your closest collection', page)
         self.assertIn('Start BlackGold Link', page)
+        self.assertIn('Fresh territory',page)
+        self.assertNotIn('Hot cut',page)
+
+    def test_recommendations_rank_real_overlap_without_revealing_scores(self):
+        record=test_discovery.record
+        self.setup_collections([record(1),record(2),record(3),record(4)], [
+            (2,'Fresh Collector',[record(10)]),
+            (3,'Hot Collector',[record(1),record(2),record(3)]),
+            (4,'Warm Collector',[record(1)]+[record(i) for i in range(20,23)])])
+        html=self.client.get('/api/collection-matches').json['html']
+        self.assertLess(html.index('<strong>Hot Collector'),html.index('<strong>Warm Collector'))
+        self.assertLess(html.index('<strong>Warm Collector'),html.index('<strong>Fresh Collector'))
+        for label in ('Hot cut','Worth a spin','Fresh territory','Your next favourite record could be hiding here.'):
+            self.assertIn(label,html)
+        for leaked in ('86.6','25.0','0.0','data-target','%','shared releases'):
+            self.assertNotIn(leaked,html)
+        self.assertIn('link-collector-hot',html)
+        self.client.set_cookie('bgl_language','de')
+        translated=self.client.get('/api/collection-matches').json['html']
+        self.assertIn('Deine nächste Lieblingsplatte',translated)
+        self.assertIn('Heiße Rille',translated)

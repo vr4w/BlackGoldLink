@@ -1,11 +1,14 @@
 {% macro match_row(match,first=false) %}
-<a class="link-collector {{ 'link-collector-first' if first else '' }}" href="{{ url_for('comparison',uid=match.id,start=1) }}" aria-label="{{ t('Start BlackGold Link') }} · {{ match.username }}">
-<span class="match-discs" aria-hidden="true"><i></i><i></i><b>↔</b></span><span class="collector-identity"><strong>{{ match.username }}</strong>{% if first and match.result.score>0 %}<small>{{ t('Closest collection') }}</small>{% else %}<small>{{ t('Start BlackGold Link') }}</small>{% endif %}</span><span class="collector-arrow" aria-hidden="true">↗</span></a>
+{% set warmth = 'hot' if match.result.score >= 50 else 'warm' if match.result.score >= 20 else 'fresh' %}
+<a class="link-collector link-collector-{{ warmth }} {{ 'link-collector-first' if first else '' }}" href="{{ url_for('comparison',uid=match.id,start=1) }}" aria-label="{{ t('Start BlackGold Link') }} · {{ match.username }}">
+<span class="match-discs" aria-hidden="true"><i></i><i></i><b>↔</b></span>
+<span class="collector-identity"><span class="collector-signal"><span class="collector-level" aria-hidden="true"><i></i><i></i><i></i></span>{{ t('Hot cut') if warmth=='hot' else t('Worth a spin') if warmth=='warm' else t('Fresh territory') }}</span><strong>{{ match.username }}</strong><small>{{ t('Drop the needle. Find out.') }}</small></span><span class="collector-arrow" aria-hidden="true">↗</span></a>
 {% endmacro %}
 <div class="links-heading"><h1>Black Gold Links</h1><span class="links-mark" aria-hidden="true">↔</span></div>
 {% if not matching_approved %}<div class="notice">{{ t('Echte Nutzervergleiche sind bis zur Klärung der API-Bedingungen gesperrt.') }}</div>
 {% elif not user.visible %}<p class="notice">{{ t('Sign in with Discogs once more to join collection comparisons.') }} <a href="{{ url_for('invite') }}">{{ t('Mit Discogs anmelden') }} →</a></p>
 {% else %}
+{% if matches %}<p class="collector-intro">{{ t('Your next favourite record could be hiding here. Start a BlackGoldLink.') }}<small>{{ t('Closest collections first. The score? After the needle drops.') }}</small></p>{% endif %}
 {% if comparison_refreshing %}<p class="match-refreshing" role="status">{{ t('Updating collections…') }}</p>{% endif %}
 <div class="collector-grid">{% for match in matches[:6] %}{{ match_row(match,loop.first) }}{% else %}<p class="fine">{{ t('Your next BlackGoldLink is on its way.') if comparison_refreshing else t('Bring another collection. Start a BlackGoldLink.') }}</p>{% endfor %}</div>
 {% if matches|length>6 %}<details class="more-collections"><summary>{{ t('More collectors') }} ({{ matches|length-6 }})</summary><div class="collector-grid">{% for match in matches[6:] %}{{ match_row(match) }}{% endfor %}</div></details>{% endif %}
