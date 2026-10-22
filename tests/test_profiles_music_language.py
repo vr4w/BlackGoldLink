@@ -16,14 +16,20 @@ class Features(unittest.TestCase):
     csrf=test_flow.Flow.csrf
     login=test_flow.Flow.login
     # Inherit its setup/helpers only; inherited tests are already covered elsewhere.
-    def test_oauth_redirect_policy_is_scoped(self):
+    def test_oauth_forms_stay_same_origin(self):
         policy=self.client.get('/invite').headers['Content-Security-Policy']
-        self.assertIn("form-action 'self' https://www.discogs.com",policy)
+        self.assertIn("form-action 'self'",policy)
+        self.assertNotIn('https://www.discogs.com',policy)
         self.assertNotIn('https://www.discogs.com',self.client.get('/').headers['Content-Security-Policy'])
         response=self.client.post('/connect',data={'csrf':self.csrf(),'consent':'yes','adult':'yes','consent_scope':'collection-comparison-v1','invite_code':'friends'})
         self.assertEqual(response.status_code,302)
-        self.assertIn('https://www.discogs.com/oauth/authorize?',response.location)
-        self.assertIn("form-action 'self' https://www.discogs.com",response.headers['Content-Security-Policy'])
+        self.assertEqual(response.location,'/oauth/authorize')
+        handoff=self.client.get(response.location)
+        self.assertEqual(handoff.status_code,200)
+        self.assertIn(b'data-discogs-authorize',handoff.data)
+        self.assertNotIn(b'request-secret',handoff.data)
+        self.assertIn("form-action 'self'",response.headers['Content-Security-Policy'])
+        self.assertNotIn('https://www.discogs.com',response.headers['Content-Security-Policy'])
         self.assertIn(b'data-connect-feedback',self.client.get('/invite').data)
 
     def test_language_default_switch_and_redirect_guard(self):

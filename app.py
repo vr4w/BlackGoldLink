@@ -135,14 +135,9 @@ def create_app(overrides=None):
     def headers(response):
         response.headers.update({'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer',
             'X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"})
-        # Chrome applies form-action to redirects after POST, including OAuth.
-        # Allow only Discogs authorization on pages participating in this handshake.
-        if request.endpoint in ('invite','connect'):
-            response.headers['Content-Security-Policy']=response.headers['Content-Security-Policy'].replace("form-action 'self'", "form-action 'self' https://www.discogs.com")
+        # Forms stay same-origin; OAuth leaves via a link in a fresh handoff document.
         if getattr(g,'user',None) and request.endpoint in ('dashboard','profile_settings','member_profile','comparison','friend_invite','friends','admin_panel','admin_account'):
             response.headers['Content-Security-Policy']="default-src 'self'; style-src 'self'; script-src 'self' https://www.youtube.com https://s.ytimg.com; frame-src https://www.youtube-nocookie.com https://www.youtube.com; connect-src 'self' https://www.youtube.com; img-src 'self' data:; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"
-        if request.endpoint == 'friend_invite':
-            response.headers['Content-Security-Policy']=response.headers['Content-Security-Policy'].replace("form-action 'self'", "form-action 'self' https://www.discogs.com")
         if production:
             response.headers['Strict-Transport-Security']='max-age=31536000'
         return response
@@ -254,10 +249,22 @@ def create_app(overrides=None):
             session['pending'] = pending_id
             session.pop('friend_token',None)
             if owner: session['friend_token']=friend_token
-            return redirect('https://www.discogs.com/oauth/authorize?' + urlencode({'oauth_token':data['oauth_token']}))
+            return redirect(url_for('discogs_authorize'))
         except DiscogsError as error:
             flash(str(error))
             return redirect(url_for('invite'))
+
+    @app.get('/oauth/authorize')
+    def discogs_authorize():
+        # Finish the form navigation here. Chrome can otherwise apply the form's
+        # CSP to Discogs' subsequent login redirects on a different host.
+        row = g.db.execute('SELECT * FROM pending WHERE id=?',(session.get('pending'),)).fetchone()
+        if not row or row['created'] < time.time()-600:
+            flash(t('Connection expired. Please sign in again.'))
+            return redirect(url_for('invite'))
+        token = decrypt(app,row['credentials'])
+        authorize_url = 'https://www.discogs.com/oauth/authorize?' + urlencode({'oauth_token':token['oauth_token']})
+        return render_template('oauth_handoff.html',authorize_url=authorize_url)
 
     @app.get('/oauth/callback')
     def callback():

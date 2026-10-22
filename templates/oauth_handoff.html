@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="panel">
+  <h1>{{ t('Continue to Discogs') }}</h1>
+  <p role="status">{{ t('Opening Discogs. If nothing happens, use the button below.') }}</p>
+  <a class="button" data-discogs-authorize href="{{ authorize_url }}">{{ t('Continue to Discogs') }} ↗</a>
+  <p class="fine">{{ t('You may need to sign in to Discogs before authorizing BlackGoldLink.') }}</p>
+</section>
+<script defer src="{{ url_for('static',filename='oauth-handoff.js') }}"></script>
+{% endblock %}

@@ -40,7 +40,10 @@ class Flow(unittest.TestCase):
     def login(self):
         response=self.client.post('/connect',data={'csrf':self.csrf(),'consent':'yes','adult':'yes','consent_scope':'collection-comparison-v1','invite_code':'friends'})
         self.assertEqual(response.status_code,302)
-        self.assertIn('discogs.com/oauth/authorize',response.location)
+        self.assertEqual(response.location,'/oauth/authorize')
+        handoff=self.client.get(response.location)
+        self.assertEqual(handoff.status_code,200)
+        self.assertIn(b'https://www.discogs.com/oauth/authorize?oauth_token=request-token',handoff.data)
         self.assertEqual(self.client.get('/oauth/callback?oauth_token=request-token&oauth_verifier=verified').location,'/app')
     def test_vertical_flow_and_deletion(self):
         self.login(); self.assertTrue(run_once(self.app))

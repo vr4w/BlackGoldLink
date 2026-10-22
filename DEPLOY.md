@@ -71,3 +71,9 @@ The owner panel is `/admin`, linked from the owner's profile. It can revoke sess
 `deployment/activate-public-entry.py ARCHIVE COMMIT SHA256` is run once by the owner with sudo. It validates the archive, uses the installed updater to test and activate a compatible application release, backs up only the BGL Nginx configuration and updater, then removes the BGL Basic Auth directives. TLS and the noindex policy stay enabled. It verifies public `/` returns 200 and anonymous `/app`, `/admin`, `/api/friends` redirect to personal sign-in. Failure restores the previous Nginx gate and installed updater. Application/database rollback remains the installed updater's responsibility; no stale database is restored.
 
 The root-owned `/var/lib/blackgoldlink-deploy/public-access` marker records this decision. The installed updater subsequently expects public HTTP 200 instead of the old 401 gate; release tests, schema checks, import guards and GitHub approval remain unchanged. Personal sessions and admin authorization remain required.
+
+## Discogs sign-in redirect handoff
+
+The consent form posts to `/connect`, which prepares the encrypted, session-bound request token and redirects to the same-origin `/oauth/authorize` document. That page returns HTTP 200 before navigating with `static/oauth-handoff.js` to Discogs; its ordinary link also works without JavaScript. Do not replace it with a direct form redirect to Discogs: Chromium can enforce `form-action` across the provider's subsequent login redirects, preventing users without a Discogs login session from continuing. No additional CSP domains or Discogs application settings are required. The pending token still expires after ten minutes and the callback consumes it once.
+
+A local synthetic provider reproduced the blocked redirect chain and successful fresh-document handoff. Actual affected users must still verify the complete Discogs login; the test does not assert a particular current Discogs login hostname.

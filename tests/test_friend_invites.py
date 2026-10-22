@@ -26,7 +26,7 @@ class FriendInvites(unittest.TestCase):
         self.assertNotIn(b'test-user',page.data)
         self.assertNotIn(b'name="invite_code"',page.data)
         self.assertIn(b'name="friend_token"',page.data)
-        self.assertIn('https://www.discogs.com',page.headers['Content-Security-Policy'])
+        self.assertNotIn('https://www.discogs.com',page.headers['Content-Security-Policy'])
         with guest.session_transaction() as session:csrf=session['csrf']
         response=guest.post('/connect',data={'csrf':csrf,'consent':'yes','adult':'yes','consent_scope':'collection-comparison-v1','friend_token':token})
         self.assertEqual(response.status_code,302)
